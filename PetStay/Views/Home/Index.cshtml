@@ -1,8 +1,185 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IEnumerable<PetStay.Models.Hotel>
+
+@{
+    ViewData["Title"] = "Hospedagens para pets";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+
+    .main-container {
+        max-width: 100%;
+    }
+
+    .search-box {
+        background: white;
+        border-radius: 50px;
+        box-shadow: 0 .75rem 1.5rem rgba(0, 0, 0, .12);
+        max-width: 980px;
+        padding: .5rem;
+    }
+
+    .search-field {
+        min-width: 0;
+        padding: .45rem 1rem;
+    }
+
+    .search-field + .search-field {
+        border-left: 1px solid #dee2e6;
+    }
+
+    .search-field label {
+
+        display: block;
+        font-size: .75rem;
+        font-weight: 700;
+        margin-bottom: .15rem;
+    }
+
+    .search-field .form-control,
+    .search-field .form-select {
+        border: 0;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    @@media (max-width: 767.98px) {
+        .search-box {
+            border-radius: 1rem;
+        }
+
+        .search-field + .search-field {
+            border-left: 0;
+            border-top: 1px solid #dee2e6;
+        }
+    }
+
+    .hotel-card {
+        border: 0;
+        border-radius: 1rem;
+        cursor: pointer;
+        box-shadow: 0 .25rem 1rem rgba(30, 55, 70, .1);
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .hotel-card:hover {
+        box-shadow: 0 .75rem 1.5rem rgba(30, 55, 70, .16);
+        transform: translateY(-4px);
+    }
+
+    .hotel-card img {
+        height: 190px;
+        object-fit: cover;
+    }
+
+  
+</style>
+
+<section class="hero-petstay mb-5 ">
+    <div class="row align-items-center g-4">
+
+        <div class="col-12 d-flex justify-content-center border-bottom box-shadow pb-5" style="background-color: #F9F9F9">
+            <form class="search-box w-100 d-flex flex-column flex-md-row align-items-stretch gap-1" role="search" onsubmit="return false;">
+                <div class="search-field flex-fill">
+                    <label for="hotelSearch">Onde</label>
+                    <input id="hotelSearch" class="form-control" type="search" placeholder="Cidade ou região" autocomplete="off" />
+                </div>
+                <div class="search-field flex-fill">
+                    <label for="stayDate">Quando</label>
+                    <input id="stayDate" class="form-control" type="date" aria-label="Data da hospedagem" />
+                </div>
+                <div class="search-field flex-fill">
+                    <label for="animalType">Pet</label>
+                    <select id="animalType" class="form-select">
+                        <option value="">Todos os animais</option>
+                        <option value="cachorro">Cachorro</option>
+                        <option value="gato">Gato</option>
+                    </select>
+                </div>
+                <button style="background-color: #176b87; padding: 15px" id="searchButton" class="btn rounded-pill px-4 fw-semibold align-self-center" type="button" aria-label="Buscar hospedagens" title="Buscar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m20 20-4-4"></path>
+                    </svg>
+                    <span class="visually-hidden">Buscar</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<div class="d-flex justify-content-between align-items-center mb-3 p-4 pb-0 pt-0">
+    <div>
+        <h2 class="h3 mb-1">Hospedagens em destaque</h2>
+        <p class="text-muted mb-0">Escolha o cantinho ideal para o seu companheiro.</p>
+    </div>
+    <span id="hotelCount" class="badge rounded-pill text-bg-light">@Model.Count() opções</span>
 </div>
+
+<div id="hotelList" class="row row-cols-1 row-cols-md-2 row-cols-xl-6 g-4 p-4">
+    @foreach (var hotel in Model)
+    {
+        <div class="col hotel-item" data-hotel="@($"{hotel.Nome} {hotel.Cidade} {hotel.Estado}")" data-detail-id="@hotel.Id">
+            <article class="card hotel-card">
+                @if (!string.IsNullOrWhiteSpace(hotel.ImagemUrl))
+                {
+                    <img src="@hotel.ImagemUrl" class="card-img-top" alt="Imagem do @hotel.Nome" />
+                }
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between gap-2">
+                        <h3 class="h5 card-title">@hotel.Nome</h3>
+                        <span aria-label="Avaliação de @hotel.Avaliacao estrelas">★ @hotel.Avaliacao.ToString("0.0")</span>
+                    </div>
+                    <p class="text-muted mb-0">@hotel.Cidade@(string.IsNullOrWhiteSpace(hotel.Estado) ? "" : $", {hotel.Estado}")</p>
+                 
+                    <div class="mt-auto d-flex justify-content-between align-items-center">
+                        <span class="text-muted fw-normal">@hotel.Diaria.ToString("C") <small class="text-muted fw-normal">/ noite</small></span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    }
+</div>
+
+<p id="noResults" class="@(Model.Any() ? "d-none " : "")text-center text-muted py-5">Nenhuma hospedagem encontrada. Tente outra busca.</p>
+
+@section Scripts {
+    <script>
+        const search = document.getElementById('hotelSearch');
+        const animalType = document.getElementById('animalType');
+        const searchButton = document.getElementById('searchButton');
+        const hotels = document.querySelectorAll('.hotel-item');
+        const count = document.getElementById('hotelCount');
+        const noResults = document.getElementById('noResults');
+
+        hotels.forEach(hotel => {
+            const link = document.createElement('a');
+            link.href = `/Home/Details/${hotel.dataset.detailId}`;
+            link.className = 'stretched-link';
+            link.setAttribute('aria-label', `Abrir detalhes de ${hotel.dataset.hotel}`);
+            hotel.querySelector('.card').append(link);
+        });
+
+        function filterHotels() {
+            const term = search.value.toLowerCase().trim();
+            const animal = animalType.value;
+            let visible = 0;
+
+            hotels.forEach(hotel => {
+                const matches = hotel.dataset.hotel.includes(term) &&
+                    (!animal || hotel.dataset.hotel.includes(animal));
+                hotel.classList.toggle('d-none', !matches);
+                if (matches) visible++;
+            });
+
+            count.textContent = `${visible} ${visible === 1 ? 'opção' : 'opções'}`;
+            noResults.classList.toggle('d-none', visible !== 0);
+        }
+
+        search.addEventListener('input', filterHotels);
+        animalType.addEventListener('change', filterHotels);
+        searchButton.addEventListener('click', filterHotels);
+    </script>
+}
