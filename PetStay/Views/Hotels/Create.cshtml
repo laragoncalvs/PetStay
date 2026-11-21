@@ -1,0 +1,153 @@
+@model PetStay.Models.HotelCreateViewModel
+
+@{
+    ViewData["Title"] = "Cadastrar hotel pet";
+}
+
+<style>
+    .hotel-page {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .hotel-card {
+        border: 0;
+        border-radius: 1rem;
+        box-shadow: 0 .5rem 1.5rem rgba(30, 55, 70, .12);
+    }
+
+    .hotel-title {
+        color: #176b87;
+    }
+</style>
+
+<div class="hotel-page px-4 py-5">
+    <div class="text-center mb-4">
+        <h1 class="h2 hotel-title">Cadastrar hotel pet</h1>
+        <p class="text-muted mb-0">Cadastre sua hospedagem para análise da equipe PetStay.</p>
+    </div>
+
+    @if (TempData["HotelSuccess"] is string hotelSuccess)
+    {
+        <div class="alert alert-success" role="alert">@hotelSuccess</div>
+    }
+
+    <div class="alert alert-info" role="alert">
+        Após o envio, o hotel ficará pendente até ser aprovado.
+    </div>
+
+    <div class="card hotel-card">
+        <div class="card-body p-4 p-md-5">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="mb-4" role="alert"></div>
+
+                <h2 class="h5 mb-3">Dados do hotel</h2>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="Nome" class="form-label"></label>
+                        <input asp-for="Nome" class="form-control" autofocus />
+                        <span asp-validation-for="Nome"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ImagemUrl" class="form-label"></label>
+                        <input asp-for="ImagemUrl" class="form-control" placeholder="https://..." />
+                        <span asp-validation-for="ImagemUrl"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Telefone" class="form-label"></label>
+                        <input asp-for="Telefone" class="form-control" autocomplete="tel" />
+                        <span asp-validation-for="Telefone"></span>
+                    </div>
+                    <div class="col-md-8">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" autocomplete="email" />
+                        <span asp-validation-for="Email"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Capacidade" class="form-label"></label>
+                        <input asp-for="Capacidade" class="form-control" type="number" min="1" />
+                        <span asp-validation-for="Capacidade"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Diaria" class="form-label"></label>
+                        <input asp-for="Diaria" class="form-control" type="number" min="0" step="0.01" />
+                        <span asp-validation-for="Diaria"></span>
+                    </div>
+                </div>
+
+                <h2 class="h5 mb-3">Endereço</h2>
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <label asp-for="Endereco" class="form-label"></label>
+                        <input asp-for="Endereco" class="form-control" autocomplete="street-address" />
+                        <span asp-validation-for="Endereco"></span>
+                    </div>
+                    <div class="col-md-8">
+                        <label asp-for="Cidade" class="form-label"></label>
+                        <input asp-for="Cidade" class="form-control" autocomplete="address-level2" />
+                        <span asp-validation-for="Cidade"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Estado" class="form-label"></label>
+                        <input asp-for="Estado" class="form-control" maxlength="2" autocomplete="address-level1" />
+                        <span asp-validation-for="Estado"></span>
+                    </div>
+                </div>
+
+                <h2 class="h5 mb-3">Horários de atendimento</h2>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="HorarioAbertura" class="form-label"></label>
+                        <input asp-for="HorarioAbertura" class="form-control" type="time" />
+                        <span asp-validation-for="HorarioAbertura"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="HorarioFechamento" class="form-label"></label>
+                        <input asp-for="HorarioFechamento" class="form-control" type="time" />
+                        <span asp-validation-for="HorarioFechamento"></span>
+                    </div>
+                </div>
+
+                <h2 class="h5 mb-3">Pets aceitos</h2>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <span class="form-label d-block">Portes aceitos</span>
+                        @foreach (var porte in Enum.GetValues<PetStay.Models.TamanhoPet>())
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="PortesAceitos" value="@((int)porte)" id="porte-@porte" @(Model.PortesAceitos.Contains(porte) ? "checked" : null) />
+                                <label class="form-check-label" for="porte-@porte">@porte</label>
+                            </div>
+                        }
+                        <span asp-validation-for="PortesAceitos"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="form-label d-block">Faixas etárias aceitas</span>
+                        @foreach (var faixa in Enum.GetValues<PetStay.Models.FaixaEtariaPet>())
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="FaixasEtariasAceitas" value="@((int)faixa)" id="faixa-@faixa" @(Model.FaixasEtariasAceitas.Contains(faixa) ? "checked" : null) />
+                                <label class="form-check-label" for="faixa-@faixa">@faixa</label>
+                            </div>
+                        }
+                        <span asp-validation-for="FaixasEtariasAceitas"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Descricao" class="form-label"></label>
+                    <textarea asp-for="Descricao" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="Descricao"></span>
+                </div>
+
+                <button type="submit" class="btn w-100 py-2 fw-semibold text-white" style="background-color: #176b87;">
+                    Enviar para aprovação
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

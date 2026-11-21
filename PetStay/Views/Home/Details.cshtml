@@ -1,7 +1,7 @@
-@model PetStay.Models.Hotel
+@model PetStay.Models.HotelDetailsViewModel
 
 @{
-    ViewData["Title"] = Model.Nome;
+    ViewData["Title"] = Model.Hotel.Nome;
 }
 
 <style>
@@ -50,9 +50,9 @@
         <span aria-hidden="true">&#8592;</span> Voltar para hospedagens
     </a>
 
-    @if (!string.IsNullOrWhiteSpace(Model.ImagemUrl))
+    @if (!string.IsNullOrWhiteSpace(Model.Hotel.ImagemUrl))
     {
-        <img class="details-image mb-4" src="@Model.ImagemUrl" alt="Imagem do @Model.Nome" />
+        <img class="details-image mb-4" src="@Model.Hotel.ImagemUrl" alt="Imagem do @Model.Hotel.Nome" />
     }
 
     <div class="row g-4">
@@ -60,19 +60,19 @@
             <section class="card details-card p-4 mb-4">
                 <div class="d-flex flex-wrap justify-content-between gap-3">
                     <div>
-                        <h1 class="display-6 fw-bold mb-2">@Model.Nome</h1>
+                        <h1 class="display-6 fw-bold mb-2">@Model.Hotel.Nome</h1>
                         <p class="text-muted mb-0">
-                            &#128205; @Model.Endereco, @Model.Cidade@(string.IsNullOrWhiteSpace(Model.Estado) ? "" : $" - {Model.Estado}")
+                            &#128205; @Model.Hotel.Endereco, @Model.Hotel.Cidade@(string.IsNullOrWhiteSpace(Model.Hotel.Estado) ? "" : $" - {Model.Hotel.Estado}")
                         </p>
                     </div>
                     <div class="text-end">
-                        <strong class="fs-5">&#9733; @Model.Avaliacao.ToString("0.0")</strong>
+                        <strong class="fs-5">&#9733; @Model.Hotel.Avaliacao.ToString("0.0")</strong>
                         <small class="d-block text-muted">Avaliação dos hóspedes</small>
                     </div>
                 </div>
                 <hr class="my-4" />
                 <h2 class="h4">Sobre esta hospedagem</h2>
-                <p class="text-muted mb-0">@(string.IsNullOrWhiteSpace(Model.Descricao) ? "Nenhuma descrição informada." : Model.Descricao)</p>
+                <p class="text-muted mb-0">@(string.IsNullOrWhiteSpace(Model.Hotel.Descricao) ? "Nenhuma descrição informada." : Model.Hotel.Descricao)</p>
             </section>
 
             <section class="card details-card p-4">
@@ -81,32 +81,32 @@
                     <div class="col">
                         <div class="detail-item">
                             <span class="d-block text-muted small">Capacidade</span>
-                            <strong>@Model.Capacidade pets</strong>
+                            <strong>@Model.Hotel.Capacidade pets</strong>
                         </div>
                     </div>
                     <div class="col">
                         <div class="detail-item">
                             <span class="d-block text-muted small">Telefone</span>
-                            <strong>@(string.IsNullOrWhiteSpace(Model.Telefone) ? "Não informado" : Model.Telefone)</strong>
+                            <strong>@(string.IsNullOrWhiteSpace(Model.Hotel.Telefone) ? "Não informado" : Model.Hotel.Telefone)</strong>
                         </div>
                     </div>
                     <div class="col">
                         <div class="detail-item">
                             <span class="d-block text-muted small">E-mail</span>
-                            @if (string.IsNullOrWhiteSpace(Model.Email))
+                            @if (string.IsNullOrWhiteSpace(Model.Hotel.Email))
                             {
                                 <strong>Não informado</strong>
                             }
                             else
                             {
-                                <a class="text-break" href="mailto:@Model.Email">@Model.Email</a>
+                                <a class="text-break" href="mailto:@Model.Hotel.Email">@Model.Hotel.Email</a>
                             }
                         </div>
                     </div>
                     <div class="col">
                         <div class="detail-item">
                             <span class="d-block text-muted small">Status</span>
-                            <strong>@(Model.Ativo ? "Disponível" : "Indisponível")</strong>
+                            <strong>@(Model.Hotel.Ativo ? "Disponível" : "Indisponível")</strong>
                         </div>
                     </div>
                 </div>
@@ -117,17 +117,37 @@
             <aside class="card booking-card p-4">
                 <p class="text-muted mb-1">A partir de</p>
                 <div class="d-flex align-items-baseline gap-1 mb-4">
-                    <strong class="display-6" style="color: #176b87;">@Model.Diaria.ToString("C")</strong>
+                    <strong class="display-6" style="color: #176b87;">@Model.Hotel.Diaria.ToString("C")</strong>
                     <span class="text-muted">/ noite</span>
                 </div>
-                <form onsubmit="return false;">
-                    <label class="form-label fw-semibold" for="checkIn">Data de entrada</label>
-                    <input id="checkIn" class="form-control mb-3" type="date" />
-                    <label class="form-label fw-semibold" for="checkOut">Data de saída</label>
-                    <input id="checkOut" class="form-control mb-3" type="date" />
-                    <label class="form-label fw-semibold" for="petName">Nome do pet</label>
-                    <input id="petName" class="form-control mb-4" type="text" placeholder="Ex.: Mel" />
-                    <button class="btn w-100 py-2 fw-semibold text-white" style="background-color: #176b87;" type="submit">Solicitar reserva</button>
+                <form asp-controller="Reservation" asp-action="Create" method="post">
+                    <input type="hidden" name="HotelId" value="@Model.Hotel.Id" />
+
+                    <label class="form-label fw-semibold" for="dataEntrada">Data de entrada</label>
+                    <input id="dataEntrada" class="form-control mb-3" type="date" name="DataEntrada" value="@Model.DataEntrada?.ToString("yyyy-MM-dd")" required />
+
+                    <label class="form-label fw-semibold" for="dataSaida">Data de saída</label>
+                    <input id="dataSaida" class="form-control mb-3" type="date" name="DataSaida" value="@Model.DataSaida?.ToString("yyyy-MM-dd")" required />
+
+                    <label class="form-label fw-semibold" for="petId">Selecionar pet</label>
+                    @if (Model.PetsDoTutor.Any())
+                    {
+                        <select id="petId" class="form-control mb-4" name="PetId" required>
+                            <option value="">-- Escolha um pet --</option>
+                            @foreach (var pet in Model.PetsDoTutor)
+                            {
+                                <option value="@pet.Id" selected="@(Model.PetId == pet.Id ? "selected" : null)">@pet.Nome</option>
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-4">
+                            Você precisa ter pelo menos um pet cadastrado para fazer uma reserva.
+                        </div>
+                    }
+
+                    <button class="btn w-100 py-2 fw-semibold text-white" style="background-color: #176b87;" type="submit" @(Model.PetsDoTutor.Any() ? "" : "disabled")>Solicitar reserva</button>
                 </form>
                 <p class="small text-muted text-center mt-3 mb-0">Você não será cobrado agora.</p>
             </aside>

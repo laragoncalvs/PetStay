@@ -1,0 +1,138 @@
+@model Reservation
+
+@{
+    ViewData["Title"] = "Detalhes da Reserva";
+    var statusLabel = Model?.Status switch
+    {
+        StatusReserva.Pendente => "Aguardando Aprovação",
+        StatusReserva.Confirmada => "Confirmada",
+        StatusReserva.Finalizada => "Finalizada",
+        StatusReserva.Cancelada => "Cancelada",
+        _ => "Desconhecido"
+    };
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">Reserva @statusLabel</h3>
+                </div>
+                <div class="card-body">
+                    @if (Model?.Status == StatusReserva.Pendente)
+                    {
+                        <div class="alert alert-warning" role="alert">
+                            <strong>Reserva Pendente</strong>
+                            <br />
+                            Sua reserva está em análise pelo gerente do hotel. Você receberá uma confirmação assim que for aprovada.
+                        </div>
+                    }
+                    else if (Model?.Status == StatusReserva.Confirmada)
+                    {
+                        <div class="alert alert-success" role="alert">
+                            <strong>Pagamento processado com sucesso!</strong>
+                            <br />
+                            Código de transação: <strong>@Model?.CodigoTransacao</strong>
+                        </div>
+                    }
+                    else if (Model?.Status == StatusReserva.Cancelada)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <strong>Reserva Cancelada</strong>
+                            @if (!string.IsNullOrEmpty(Model?.MotivoRejeicao))
+                            {
+                                <br />
+                                <text>Motivo: </text>@Model.MotivoRejeicao
+                            }
+                        </div>
+                    }
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Informações da Reserva</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p><strong>ID Reserva:</strong> @Model?.Id</p>
+                                    <p><strong>Status:</strong> @Model?.Status</p>
+                                    <p><strong>Hotel:</strong> @Model?.Hotel?.Nome</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Pet:</strong> @Model?.Pet?.Nome</p>
+                                    <p><strong>Data Criação:</strong> @Model?.CriadaEm.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Datas e Horários</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <p><strong>Check-in:</strong></p>
+                                    <p>@Model?.DataEntrada.ToString("dd/MM/yyyy") às @Model?.HorarioEntrada?.ToString(@"hh\:mm")</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <p><strong>Check-out:</strong></p>
+                                    <p>@Model?.DataSaida.ToString("dd/MM/yyyy") às @Model?.HorarioSaida?.ToString(@"hh\:mm")</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p><strong>Duração:</strong> @((Model?.DataSaida - Model?.DataEntrada)?.Days ?? 0) dia(s)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Resumo de Valores</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-2">
+                                <div class="col-6"><strong>Diária Base:</strong></div>
+                                <div class="col-6 text-end">R$ @Model?.ValorDiariaBase.ToString("F2")</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6"><strong>Adicional Idade:</strong></div>
+                                <div class="col-6 text-end">R$ @Model?.ValorAdicionalIdade.ToString("F2")</div>
+                            </div>
+                            <hr />
+                            <div class="row">
+                                <div class="col-6"><h5>Valor Total:</h5></div>
+                                <div class="col-6 text-end"><h5>R$ @Model?.ValorTotal.ToString("F2")</h5></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model?.ObservacoesTutor))
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Observações</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>@Model.ObservacoesTutor</p>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="d-grid gap-2">
+                        <a href="@Url.Action("MyReservations", "Reservation")" class="btn btn-primary btn-lg">
+                            Ver Minhas Reservas
+                        </a>
+                        <a href="@Url.Action("Index", "HotelsSearch")" class="btn btn-outline-secondary">
+                            Fazer Outra Reserva
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,119 @@
+@model List<Reservation>
+
+@{
+    ViewData["Title"] = "Reservas em Progresso - Check-out";
+}
+
+<div class="container my-5">
+    <div class="row align-items-center mb-4">
+        <div class="col">
+            <h1 class="fw-bold">Reservas em Progresso</h1>
+            <p class="text-muted">Registre o check-out dos pets que estão saindo</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success" role="alert">
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            <strong>Nenhuma reserva em progresso</strong>
+            <br />
+            As reservas com check-in registrado aparecerão aqui para registro de check-out.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Tutor</th>
+                        <th>Pet</th>
+                        <th>Check-in Efetivo</th>
+                        <th>Data Saída Prevista</th>
+                        <th>Valor</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var reservation in Model)
+                    {
+                        <tr>
+                            <td>@reservation.Tutor?.Nome</td>
+                            <td>@reservation.Pet?.Nome</td>
+                            <td>
+                                @if (reservation.DataCheckInEfetiva.HasValue)
+                                {
+                                    <span>@reservation.DataCheckInEfetiva?.ToString("dd/MM/yyyy")</span>
+                                    @if (reservation.HoraCheckInEfetiva.HasValue)
+                                    {
+                                        <span> @reservation.HoraCheckInEfetiva?.ToString(@"hh\:mm")</span>
+                                    }
+                                }
+                            </td>
+                            <td>@reservation.DataSaida.ToString("dd/MM/yyyy")</td>
+                            <td>@reservation.ValorTotal.ToString("C")</td>
+                            <td>
+                                <button type="button" class="btn btn-sm px-3 py-2 fw-semibold text-white" 
+                                        style="background-color: #176b87; border-radius: 50px; border: none;"
+                                        data-bs-toggle="modal" data-bs-target="#checkOutModal"
+                                        onclick="setCheckOutReservationId(@reservation.Id, '@reservation.Pet?.Nome')">
+                                    Registrar Check-out
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Modal Check-out -->
+<div class="modal fade" id="checkOutModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold">Registrar Check-out</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="checkOutForm" method="post">
+                <div class="modal-body">
+                    <p id="petName" class="mb-3"></p>
+
+                    <label class="form-label fw-semibold">Data de Check-out</label>
+                    <input type="date" class="form-control mb-3" name="dataCheckOut" required />
+
+                    <label class="form-label fw-semibold">Hora de Check-out</label>
+                    <input type="time" class="form-control mb-3" name="horaCheckOut" />
+
+                    <label class="form-label fw-semibold">Observações (opcional)</label>
+                    <textarea class="form-control" name="observacoes" rows="3" placeholder="Ex: Pet saiu bem, sem problemas..."></textarea>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn px-4 py-2 fw-semibold" style="border: 1px solid #ccc; border-radius: 50px; background: white; color: #333;" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn px-4 py-2 fw-semibold text-white" style="background-color: #176b87; border-radius: 50px; border: none;">Confirmar Check-out</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function setCheckOutReservationId(reservationId, petName) {
+        const form = document.getElementById('checkOutForm');
+        form.action = `/Reservation/register-check-out/${reservationId}`;
+        document.getElementById('petName').textContent = `Pet: ${petName}`;
+
+        // Definir data atual como padrão
+        const today = new Date().toISOString().split('T')[0];
+        form.querySelector('[name="dataCheckOut"]').value = today;
+        form.querySelector('[name="horaCheckOut"]').value = '11:00';
+    }
+</script>

@@ -1,0 +1,109 @@
+@model List<Reservation>
+
+@{
+    ViewData["Title"] = "Minhas Reservas";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="mb-4">Minhas Reservas</h1>
+
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info text-center py-5">
+                    <h4>Nenhuma reserva encontrada</h4>
+                    <p>Você ainda não fez nenhuma reserva. <a href="@Url.Action("Index", "HotelsSearch")">Comece agora!</a></p>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var reservation in Model)
+                    {
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h5 class="card-title mb-0">@reservation.Hotel?.Nome</h5>
+                                            <small class="text-muted">@reservation.Pet?.Nome</small>
+                                        </div>
+                                        <div class="fw-500">
+                                            @reservation.Status
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div><strong>Check-in:</strong> @reservation.DataEntrada.ToString("dd/MM/yyyy")</div>
+                                        <div><strong>Check-out:</strong> @reservation.DataSaida.ToString("dd/MM/yyyy")</div>
+                                    </div>
+                                    <div class="alert alert-light mb-2">
+                                        <strong>Valor Total:</strong> R$ @reservation.ValorTotal.ToString("F2")
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-light">
+                                    <div class="btn-group btn-group-sm w-100" role="group">
+                                        <a href="@Url.Action("Details", "Reservation", new { id = reservation.Id })" 
+                                           class="btn btn-outline-primary">Detalhes</a>
+
+                                        @if (reservation.Status == StatusReserva.Pendente)
+                                        {
+                                            <button class="btn btn-sm" style="border: 1px solid #ccc; background: #fff9e6; color: #cc8800;" disabled title="Aguardando aprovação do gestor">
+                                                Aguardando resposta
+                                            </button>
+                                        }
+
+                                        @if (reservation.Status == StatusReserva.Confirmada && reservation.DataSaida > DateTime.Now)
+                                        {
+                                            <button class="btn btn-outline-secondary" onclick="cancelReservation(@reservation.Id)">
+                                                Cancelar
+                                            </button>
+                                        }
+
+                                        @if (reservation.Status == StatusReserva.Finalizada)
+                                        {
+                                            <a href="@Url.Action("Create", "Review", new { reservationId = reservation.Id })" 
+                                               class="btn btn-outline-secondary">Avaliar</a>
+                                        }
+
+                                        @if (reservation.Status == StatusReserva.Cancelada)
+                                        {
+                                            <button class="btn btn-sm" style="border: 1px solid #ccc; background: #f8d7da; color: #721c24;" disabled title="Reserva cancelada">
+                                                Cancelada
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    async function cancelReservation(reservationId) {
+        if (!confirm('Tem certeza que deseja cancelar esta reserva? Você receberá um reembolso automático.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/Reservation/cancel/${reservationId}`, { method: 'POST' });
+            if (response.ok) {
+                alert('Reserva cancelada com sucesso!');
+                location.reload();
+            } else {
+                alert('Erro ao cancelar reserva');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro ao cancelar reserva');
+        }
+    }
+</script>
+
+

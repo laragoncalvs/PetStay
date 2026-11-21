@@ -1,0 +1,82 @@
+@{
+    ViewData["Title"] = "Debug - Diagnóstico de Reservas";
+}
+
+<div class="container my-5">
+    <h1 class="mb-4">Diagnóstico do Sistema</h1>
+
+    <div id="debug-info"></div>
+</div>
+
+<script>
+    fetch('/Reservation/debug-pending')
+        .then(r => r.json())
+        .then(data => {
+            const html = `
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5>Usuário Atual</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>ID:</strong> ${data.userId || 'Não autenticado'}</p>
+                                <p><strong>Nome:</strong> ${data.userName || 'N/A'}</p>
+                                <p><strong>Perfil:</strong> ${data.userPerfil || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5>Hotéis Atribuídos</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Total:</strong> <span class="badge" style="background-color: #176b87;">${data.hotelCount}</span></p>
+                                ${data.hotelCount === 0 ? '<p class="alert alert-warning mb-0">⚠️ Nenhum hotel atribuído a este gestor!</p>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5>Reservas Pendentes (Status = 0)</h5>
+                            </div>
+                            <div class="card-body">
+                                ${data.reservasPendentes.length === 0 
+                                    ? '<p class="alert alert-info mb-0">Nenhuma reserva pendente no banco</p>' 
+                                    : `<table class="table"><thead><tr><th>ID</th><th>Hotel</th><th>Status</th><th>Solicitada em</th></tr></thead><tbody>
+                                        ${data.reservasPendentes.map(r => `<tr><td>${r.id}</td><td>${r.hotelId}</td><td>${r.status}</td><td>${r.solicitadaEm}</td></tr>`).join('')}
+                                      </tbody></table>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5>Todas as Reservas no Banco</h5>
+                            </div>
+                            <div class="card-body">
+                                ${data.todasReservas.length === 0 
+                                    ? '<p class="alert alert-info mb-0">Nenhuma reserva no banco</p>' 
+                                    : `<table class="table"><thead><tr><th>ID</th><th>Hotel</th><th>Status</th><th>Solicitada em</th></tr></thead><tbody>
+                                        ${data.todasReservas.map(r => `<tr><td>${r.id}</td><td>${r.hotelId}</td><td>${r.status}</td><td>${r.solicitadaEm}</td></tr>`).join('')}
+                                      </tbody></table>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('debug-info').innerHTML = html;
+        })
+        .catch(e => {
+            document.getElementById('debug-info').innerHTML = `<div class="alert alert-danger">Erro ao carregar debug: ${e.message}</div>`;
+        });
+</script>

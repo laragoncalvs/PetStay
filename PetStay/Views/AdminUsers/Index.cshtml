@@ -1,0 +1,118 @@
+@model PetStay.Models.AdminUsersViewModel
+
+@{
+    ViewData["Title"] = "Gerenciar usuários";
+}
+
+<style>
+    .users-page {
+        max-width: 1150px;
+        margin: 0 auto;
+    }
+
+    .users-card {
+        border: 0;
+        border-radius: 1rem;
+        box-shadow: 0 .5rem 1.5rem rgba(30, 55, 70, .12);
+    }
+
+    .users-title {
+        color: #176b87;
+    }
+</style>
+
+<div class="users-page px-4 py-5">
+    <div class="mb-4">
+        <h1 class="h2 users-title mb-1">Gerenciar usuários</h1>
+        <p class="text-muted mb-0">Busque e controle o acesso dos usuários do PetStay.</p>
+    </div>
+
+    @if (TempData["AdminUserSuccess"] is string successMessage)
+    {
+        <div class="alert alert-success" role="alert">@successMessage</div>
+    }
+
+    @if (TempData["AdminUserError"] is string errorMessage)
+    {
+        <div class="alert alert-danger" role="alert">@errorMessage</div>
+    }
+
+    <div class="card users-card mb-4">
+        <div class="card-body p-4">
+            <form asp-action="Index" method="get" class="row g-2 align-items-end">
+                <div class="col-md-9">
+                    <label asp-for="Busca" class="form-label">Buscar por nome ou e-mail</label>
+                    <input asp-for="Busca" class="form-control" placeholder="Digite um nome ou e-mail" />
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn text-white flex-fill" style="background-color: #176b87;">Buscar</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Limpar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card users-card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Usuário</th>
+                        <th>Perfil</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Usuarios.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-5">Nenhum usuário encontrado.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var usuario in Model.Usuarios)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <strong class="d-block">@usuario.Nome</strong>
+                                    <span class="small text-muted">@usuario.Email</span>
+                                </td>
+                                <td>@usuario.Perfil</td>
+                                <td>
+                                    @if (usuario.Ativo)
+                                    {
+                                        <span class="fw-500">Ativo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="fw-500">Inativo</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    @if (usuario.EhUsuarioAtual)
+                                    {
+                                        <span class="small text-muted">Conta atual</span>
+                                    }
+                                    else if (usuario.Ativo)
+                                    {
+                                        <form asp-action="Deactivate" asp-route-id="@usuario.Id" method="post" class="d-inline" onsubmit="return confirm('Deseja inativar este usuário?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Inativar</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Activate" asp-route-id="@usuario.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">Ativar</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

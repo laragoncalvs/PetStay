@@ -1,0 +1,107 @@
+@model PetStay.Models.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Meu perfil";
+}
+
+<style>
+    .profile-page {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .profile-card {
+        border: 0;
+        border-radius: 1rem;
+        box-shadow: 0 .5rem 1.5rem rgba(30, 55, 70, .12);
+    }
+
+    .profile-title {
+        color: #176b87;
+    }
+</style>
+
+<div class="profile-page px-4 py-5">
+    <div class="text-center mb-4">
+        <h1 class="h2 profile-title">Meu perfil</h1>
+        <p class="text-muted mb-0">Gerencie seus dados e sua senha.</p>
+    </div>
+
+    @if (TempData["ProfileSuccess"] is string profileSuccess)
+    {
+        <div class="alert alert-success" role="alert">@profileSuccess</div>
+    }
+
+    @if (TempData["PasswordSuccess"] is string passwordSuccess)
+    {
+        <div class="alert alert-success" role="alert">@passwordSuccess</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card profile-card h-100">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="h4 mb-4">Dados pessoais</h2>
+
+                    <form asp-action="EditProfile" method="post">
+                        <div asp-validation-summary="ModelOnly" class="mb-3" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="DadosPessoais.Nome" class="form-label"></label>
+                            <input asp-for="DadosPessoais.Nome" class="form-control" autocomplete="name" />
+                            <span asp-validation-for="DadosPessoais.Nome"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="DadosPessoais.Telefone" class="form-label"></label>
+                            <input asp-for="DadosPessoais.Telefone" class="form-control" autocomplete="tel" />
+                            <span asp-validation-for="DadosPessoais.Telefone"></span>
+                        </div>
+
+                        <button type="submit" class="btn w-100 py-2 fw-semibold text-white" style="background-color: #176b87;">
+                            Salvar dados
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card profile-card h-100">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="h4 mb-4">Alterar senha</h2>
+
+                    <form asp-action="ChangePassword" method="post">
+                        <div asp-validation-summary="ModelOnly" class="mb-3" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="AlteracaoSenha.SenhaAtual" class="form-label"></label>
+                            <input asp-for="AlteracaoSenha.SenhaAtual" class="form-control" autocomplete="current-password" />
+                            <span asp-validation-for="AlteracaoSenha.SenhaAtual"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="AlteracaoSenha.NovaSenha" class="form-label"></label>
+                            <input asp-for="AlteracaoSenha.NovaSenha" class="form-control" autocomplete="new-password" />
+                            <span asp-validation-for="AlteracaoSenha.NovaSenha"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="AlteracaoSenha.ConfirmacaoNovaSenha" class="form-label"></label>
+                            <input asp-for="AlteracaoSenha.ConfirmacaoNovaSenha" class="form-control" autocomplete="new-password" />
+                            <span asp-validation-for="AlteracaoSenha.ConfirmacaoNovaSenha"></span>
+                        </div>
+
+                        <button type="submit" class="btn w-100 py-2 fw-semibold text-white" style="background-color: #176b87;">
+                            Alterar senha
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

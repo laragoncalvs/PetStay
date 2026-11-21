@@ -1,0 +1,209 @@
+@model ReservationCreateViewModel
+
+@{
+    ViewData["Title"] = "Nova Reserva";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="mb-4"> Fazer Reserva</h1>
+
+            @if (!string.IsNullOrEmpty(Model?.MensagemValidacao))
+            {
+                <div class="alert alert-danger" role="alert">
+                    @Model.MensagemValidacao
+                </div>
+            }
+
+            <!-- Debug: Mostrar erros de validação -->
+            @if (ViewData.ModelState.Any(x => x.Value.Errors.Count > 0))
+            {
+                <div class="alert alert-warning" role="alert">
+                    <strong>Erros encontrados:</strong>
+                    <ul class="mb-0 mt-2">
+                        @foreach (var state in ViewData.ModelState.Values.Where(x => x.Errors.Count > 0))
+                        {
+                            @foreach (var error in state.Errors)
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        }
+                    </ul>
+                </div>
+            }
+
+            <div class="card mb-4">
+                <div class="card-header ">
+                    <h5 class="mb-0">Informações do Hotel</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Hotel:</strong> @Model?.Hotel?.Nome</p>
+                            <p><strong>Localização:</strong> @Model?.Hotel?.Endereco</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Valor da Diária:</strong> R$ @Model?.Hotel?.Diaria.ToString("F2")</p>
+                            <p><strong>Capacidade:</strong> @Model?.Hotel?.Capacidade vagas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form asp-action="Create" asp-controller="Reservation" method="post" id="reservationForm">
+                <input type="hidden" name="hotelId" value="@Model?.HotelId" />
+
+                <!-- Pet Selection -->
+                <div class="card mb-4">
+                    <div class="card-header  ">
+                        <h5 class="mb-0">Selecione o Pet</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="petId" class="form-label fw-bold">Pet</label>
+                            <select id="petId" name="petId" class="form-select" required>
+                                <option value="">-- Escolha um pet --</option>
+                                @foreach (var pet in Model?.PetsDoTutor ?? new List<Pet>())
+                                {
+                                    <option value="@pet.Id">
+                                        @pet.Nome - @(pet.Tamanho switch {
+                                            TamanhoPet.Pequeno => "Pequeno",
+                                            TamanhoPet.Medio => "Médio",
+                                            TamanhoPet.Grande => "Grande",
+                                            _ => "Desconhecido"
+                                        })
+                                    </option>
+                                }
+                            </select>
+                            <small class="form-text text-muted">
+                                Não tem pets cadastrados? <a href="@Url.Action("Create", "Pets")">Cadastre aqui</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dates Selection -->
+                <div class="card mb-4">
+                    <div class="card-header ">
+                        <h5 class="mb-0">Datas e Horários</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dataEntrada" class="form-label fw-bold">Check-in </label>
+                                <input type="date" id="dataEntrada" name="dataEntrada" class="form-control" 
+                                    value="@Model?.DataEntrada.ToString("yyyy-MM-dd")" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="horarioEntrada" class="form-label fw-bold">Horário Check-in </label>
+                                <input type="time" id="horarioEntrada" name="horarioEntrada" class="form-control" 
+                                    value="14:00" required />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dataSaida" class="form-label fw-bold">Check-out </label>
+                                <input type="date" id="dataSaida" name="dataSaida" class="form-control" 
+                                    value="@Model?.DataSaida.ToString("yyyy-MM-dd")" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="horarioSaida" class="form-label fw-bold">Horário Check-out </label>
+                                <input type="time" id="horarioSaida" name="horarioSaida" class="form-control" 
+                                    value="11:00" required />
+                            </div>
+                        </div>
+                        <div id="diasReserva" class="alert alert-info">
+                            <strong>Duração:</strong> <span id="totalDias">1</span> dia(s)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Summary -->
+                <div class="card mb-4">
+                    <div class="card-header  text-dark">
+                        <h5 class="mb-0">Resumo de Valores</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <strong>Diária Base:</strong>
+                            </div>
+                            <div class="col-6 text-end">
+                                R$ <span id="valorDiariaBase">@Model?.ValorDiariaBase.ToString("F2")</span>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <strong>Adicional Faixa Etária:</strong>
+                            </div>
+                            <div class="col-6 text-end">
+                                R$ <span id="valorAdicional">0.00</span>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row">
+                            <div class="col-6">
+                                <strong class="fs-5">Valor Total:</strong>
+                            </div>
+                            <div class="col-6 text-end">
+                                <strong class="fs-5">R$ <span id="valorTotal">@Model?.ValorTotal.ToString("F2")</span></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Observations -->
+                <div class="card mb-4">
+                <div class="card-header">
+                        <h5 class="mb-0">Observações Adicionais</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="observacoesTutor" class="form-label">Observações (opcional) </label>
+                            <textarea id="observacoesTutor" name="observacoesTutor" class="form-control" 
+                                rows="3" placeholder="Ex: Pet possui alergias, comportamentos especiais, etc.">@Model?.ObservacoesTutor</textarea>
+                            <small class="form-text text-muted">Máximo 1000 caracteres</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-grid gap-2">
+                    <button type="submit" style="background-color: " class="btn  btn-lg">
+                        <i class="bi bi-check-circle"></i> Prosseguir para Pagamento
+                    </button>
+                    <a href="@Url.Action("Index", "HotelsSearch")" class="btn btn-outline-secondary">
+                        ← Voltar à Busca
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Atualizar cálculo de dias e valores
+    document.getElementById('dataEntrada').addEventListener('change', atualizarResumo);
+    document.getElementById('dataSaida').addEventListener('change', atualizarResumo);
+    document.getElementById('petId').addEventListener('change', atualizarAdicionalIdade);
+
+    function atualizarResumo() {
+        const dataEntrada = new Date(document.getElementById('dataEntrada').value);
+        const dataSaida = new Date(document.getElementById('dataSaida').value);
+        const dias = Math.max(1, Math.ceil((dataSaida - dataEntrada) / (1000 * 60 * 60 * 24)));
+
+        document.getElementById('totalDias').textContent = dias;
+
+        const valorDiaria = parseFloat('@Model?.ValorDiariaBase'.replace(',', '.'));
+        const valorAdicional = parseFloat(document.getElementById('valorAdicional').textContent.replace(',', '.'));
+        const valorTotal = (valorDiaria + valorAdicional) * dias;
+
+        document.getElementById('valorTotal').textContent = valorTotal.toFixed(2);
+    }
+
+    function atualizarAdicionalIdade() {
+        // Aqui você poderia fazer uma chamada AJAX para buscar as informações do pet
+        // Por enquanto, deixamos como está
+    }
+</script>

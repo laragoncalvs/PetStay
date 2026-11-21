@@ -3,6 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PetStay.Models
 {
+    public enum StatusAprovacaoHotel
+    {
+        Pendente = 1,
+        Aprovado = 2,
+        Reprovado = 3
+    }
+
     public class Hotel
     {
         public int Id { get; set; }
@@ -49,5 +56,32 @@ namespace PetStay.Models
         public decimal Diaria { get; set; }
 
         public bool Ativo { get; set; } = true;
+
+        public TimeSpan HorarioAbertura { get; set; }
+
+        public TimeSpan HorarioFechamento { get; set; }
+
+        [StringLength(100)]
+        public string PortesAceitos { get; set; } = string.Empty;
+
+        [StringLength(100)]
+        public string FaixasEtariasAceitas { get; set; } = string.Empty;
+
+        public bool Aprovado { get; set; } = true;
+
+        public StatusAprovacaoHotel StatusAprovacao { get; set; } = StatusAprovacaoHotel.Aprovado;
+
+        [StringLength(1000)]
+        public string? JustificativaAprovacao { get; set; }
+
+        public DateTime? AprovadoEm { get; set; }
+
+        public int? AdministradorId { get; set; }
+
+        public ApplicationUser? Administrador { get; set; }
+
+        public int? GestorId { get; set; }
+
+        public ApplicationUser? Gestor { get; set; }
     }
 }

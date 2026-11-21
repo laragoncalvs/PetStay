@@ -74,33 +74,108 @@
         object-fit: cover;
     }
 
-  
+    /* Sugestões de cidades */
+    .city-input-wrapper {
+        position: relative;
+        overflow: visible;
+    }
+
+    .city-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 300px;
+        overflow-y: auto;
+        display: none;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .city-suggestions.show {
+        display: block;
+    }
+
+    .city-suggestions li {
+        padding: 12px 15px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .city-suggestions li:last-child {
+        border-bottom: none;
+    }
+
+    .city-suggestions li:hover {
+        background-color: #f0f0f0;
+    }
+
+    .city-suggestions li strong {
+        color: #176b87;
+        font-weight: 600;
+    }
+
+    .city-suggestions li small {
+        display: block;
+        color: #999;
+        font-size: 0.85rem;
+        margin-top: 2px;
+    }
+
+    .city-suggestions li.loading {
+        padding: 12px 15px;
+        text-align: center;
+        color: #999;
+    }
+
 </style>
 
 <section class="hero-petstay mb-5 ">
     <div class="row align-items-center g-4">
 
         <div class="col-12 d-flex justify-content-center border-bottom box-shadow pb-5" style="background-color: #F9F9F9">
-            <form class="search-box w-100 d-flex flex-column flex-md-row align-items-stretch gap-1" role="search" onsubmit="return false;">
-                <div class="search-field flex-fill">
-                    <label for="hotelSearch">Onde</label>
-                    <input id="hotelSearch" class="form-control" type="search" placeholder="Cidade ou região" autocomplete="off" />
+            <form class="search-box w-100 d-flex flex-column flex-md-row align-items-stretch gap-1" 
+                asp-action="Search" asp-controller="HotelsSearch" method="get" role="search">
+                <div class="search-field flex-fill city-input-wrapper">
+                    <label for="cidade">Onde</label>
+                    <input id="cidade" class="form-control" type="search" name="cidade" placeholder="Cidade ou região" autocomplete="off" />
+                    <ul id="cityList" class="city-suggestions"></ul>
                 </div>
                 <div class="search-field flex-fill">
-                    <label for="stayDate">Quando</label>
-                    <input id="stayDate" class="form-control" type="date" aria-label="Data da hospedagem" />
+                    <label for="dataEntrada">Quando</label>
+                    <input id="dataEntrada" class="form-control" type="date" name="dataEntrada" />
                 </div>
                 <div class="search-field flex-fill">
-                    <label for="animalType">Pet</label>
-                    <select id="animalType" class="form-select">
-                        <option value="">Todos os animais</option>
-                        <option value="cachorro">Cachorro</option>
-                        <option value="gato">Gato</option>
-                    </select>
+                    <label for="dataSaida">Saída</label>
+                    <input id="dataSaida" class="form-control" type="date" name="dataSaida" />
                 </div>
-                <button style="background-color: #176b87; padding: 15px" id="searchButton" class="btn rounded-pill px-4 fw-semibold align-self-center" type="button" aria-label="Buscar hospedagens" title="Buscar">
+                @if (User.Identity?.IsAuthenticated == true && (ViewBag.PetsDoTutor?.Count ?? 0) > 0)
+                {
+                    <div class="search-field flex-fill">
+                        <label for="petId">Pet</label>
+                        <select id="petId" class="form-select" name="petId">
+                            <option value="">Todos os pets</option>
+                            @foreach (var pet in ViewBag.PetsDoTutor ?? new List<Pet>())
+                            {
+                                <option value="@pet.Id">
+                                    @pet.Nome
+                                </option>
+                            }
+                        </select>
+                    </div>
+                }
+                <button style="background-color: #176b87; padding: 15px" class="btn rounded-pill px-4 fw-semibold align-self-center" type="submit" aria-label="Buscar hospedagens" title="Buscar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5" aria-hidden="true">
                         <circle cx="11" cy="11" r="7"></circle>
+
+
                         <path d="m20 20-4-4"></path>
                     </svg>
                     <span class="visually-hidden">Buscar</span>
@@ -115,7 +190,6 @@
         <h2 class="h3 mb-1">Hospedagens em destaque</h2>
         <p class="text-muted mb-0">Escolha o cantinho ideal para o seu companheiro.</p>
     </div>
-    <span id="hotelCount" class="badge rounded-pill text-bg-light">@Model.Count() opções</span>
 </div>
 
 <div id="hotelList" class="row row-cols-1 row-cols-md-2 row-cols-xl-6 g-4 p-4">
@@ -133,7 +207,7 @@
                         <span aria-label="Avaliação de @hotel.Avaliacao estrelas">★ @hotel.Avaliacao.ToString("0.0")</span>
                     </div>
                     <p class="text-muted mb-0">@hotel.Cidade@(string.IsNullOrWhiteSpace(hotel.Estado) ? "" : $", {hotel.Estado}")</p>
-                 
+
                     <div class="mt-auto d-flex justify-content-between align-items-center">
                         <span class="text-muted fw-normal">@hotel.Diaria.ToString("C") <small class="text-muted fw-normal">/ noite</small></span>
                     </div>
@@ -147,12 +221,7 @@
 
 @section Scripts {
     <script>
-        const search = document.getElementById('hotelSearch');
-        const animalType = document.getElementById('animalType');
-        const searchButton = document.getElementById('searchButton');
         const hotels = document.querySelectorAll('.hotel-item');
-        const count = document.getElementById('hotelCount');
-        const noResults = document.getElementById('noResults');
 
         hotels.forEach(hotel => {
             const link = document.createElement('a');
@@ -162,24 +231,118 @@
             hotel.querySelector('.card').append(link);
         });
 
-        function filterHotels() {
-            const term = search.value.toLowerCase().trim();
-            const animal = animalType.value;
-            let visible = 0;
+        // Autocompletar de cidades
+        const cidadeInput = document.getElementById('cidade');
+        const cityList = document.getElementById('cityList');
+        let currentFocusIndex = -1;
 
-            hotels.forEach(hotel => {
-                const matches = hotel.dataset.hotel.includes(term) &&
-                    (!animal || hotel.dataset.hotel.includes(animal));
-                hotel.classList.toggle('d-none', !matches);
-                if (matches) visible++;
-            });
-
-            count.textContent = `${visible} ${visible === 1 ? 'opção' : 'opções'}`;
-            noResults.classList.toggle('d-none', visible !== 0);
+        function showLoadingState() {
+            cityList.innerHTML = '<li class="loading">Buscando cidades...</li>';
+            cityList.classList.add('show');
         }
 
-        search.addEventListener('input', filterHotels);
-        animalType.addEventListener('change', filterHotels);
-        searchButton.addEventListener('click', filterHotels);
+        function showNoResults() {
+            cityList.innerHTML = '<li class="loading">Nenhuma cidade encontrada</li>';
+            cityList.classList.add('show');
+        }
+
+        async function searchCities(searchTerm) {
+            if (searchTerm.length < 2) {
+                cityList.classList.remove('show');
+                return;
+            }
+
+            showLoadingState();
+
+            try {
+                const response = await fetch(`/api/cities/search?termo=${encodeURIComponent(searchTerm)}`);
+                if (!response.ok) {
+                    showNoResults();
+                    return;
+                }
+
+                const cities = await response.json();
+
+                if (!cities || cities.length === 0) {
+                    showNoResults();
+                    return;
+                }
+
+                cityList.innerHTML = '';
+                currentFocusIndex = -1;
+
+                cities.forEach(city => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${city.nome}</strong><small>${city.estado} - ${city.regiao}</small>`;
+                    li.addEventListener('click', () => {
+                        cidadeInput.value = city.nome;
+                        if (document.querySelector('select[name="estado"]') === null) {
+                            const form = cidadeInput.closest('form');
+                            if (!document.querySelector('input[name="estado"]')) {
+                                const estadoInput = document.createElement('input');
+                                estadoInput.type = 'hidden';
+                                estadoInput.name = 'estado';
+                                estadoInput.value = city.estado;
+                                form.appendChild(estadoInput);
+                            }
+                        }
+                        cityList.classList.remove('show');
+                    });
+                    cityList.appendChild(li);
+                });
+
+                cityList.classList.add('show');
+            } catch (error) {
+                console.error('Erro ao buscar cidades:', error);
+                showNoResults();
+            }
+        }
+
+        cidadeInput.addEventListener('input', (e) => {
+            const value = e.target.value.trim();
+            if (value.length < 2) {
+                cityList.classList.remove('show');
+            } else {
+                searchCities(value);
+            }
+        });
+
+        cidadeInput.addEventListener('focus', (e) => {
+            if (e.target.value.length >= 2 && cityList.children.length > 0) {
+                cityList.classList.add('show');
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!cidadeInput.contains(e.target) && !cityList.contains(e.target)) {
+                cityList.classList.remove('show');
+            }
+        });
+
+        cidadeInput.addEventListener('keydown', (e) => {
+            const items = cityList.querySelectorAll('li');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                currentFocusIndex = Math.min(currentFocusIndex + 1, items.length - 1);
+                updateFocus(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                currentFocusIndex = Math.max(currentFocusIndex - 1, -1);
+                updateFocus(items);
+            } else if (e.key === 'Enter' && currentFocusIndex >= 0) {
+                e.preventDefault();
+                items[currentFocusIndex].click();
+            }
+        });
+
+        function updateFocus(items) {
+            items.forEach((item, index) => {
+                if (index === currentFocusIndex) {
+                    item.style.backgroundColor = '#f0f0f0';
+                } else {
+                    item.style.backgroundColor = '';
+                }
+            });
+        }
     </script>
 }

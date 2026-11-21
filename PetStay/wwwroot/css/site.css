@@ -9,7 +9,7 @@ html {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #176b87;
 }
 
 html {
@@ -29,4 +29,109 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+
+/* Estilos Minimalistas */
+
+/* Botões arredondados */
+.btn {
+    border-radius: 50px;
+    font-weight: 500;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #176b87;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0d3d52;
+    color: white;
+}
+
+.btn-outline-primary {
+    color: #176b87;
+    border-color: #176b87;
+}
+
+.btn-outline-primary:hover {
+    background-color: white;
+    color: #176b87;
+    border-color: #176b87;
+}
+
+.btn-outline-secondary {
+    color: #333;
+    border-color: #ddd;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f9f9f9;
+    color: #333;
+    border-color: #ddd;
+}
+
+.btn-outline-danger {
+    color: #666;
+    border-color: #ddd;
+}
+
+.btn-outline-danger:hover {
+    background-color: #f9f9f9;
+    color: #333;
+    border-color: #ddd;
+}
+
+/* Cards minimalistas */
+.card {
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Badges neutras */
+.badge {
+    background-color: #f0f0f0;
+    color: #333;
+    font-weight: 500;
+    padding: 0.35rem 0.65rem;
+    border-radius: 12px;
+}
+
+/* Validações sem cores */
+.field-validation-error {
+    display: block;
+    color: #666;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.validation-summary-errors {
+    color: #666;
+    padding: 1rem;
+    border-left: 3px solid #ddd;
+    background-color: #f9f9f9;
+}
+
+/* Alerts minimalistas */
+.alert {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+.alert-info {
+    border-color: #e0e0e0;
+    background-color: #f9f9f9;
+    color: #333;
 }

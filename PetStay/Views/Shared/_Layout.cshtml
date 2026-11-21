@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using PetStay.Models
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -27,6 +31,74 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                     </ul>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        var currentUser = await UserManager.FindByNameAsync(User.Identity.Name!);
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item dropdown">
+                                <button class="nav-link dropdown-toggle d-flex align-items-center gap-2 text-dark btn btn-link" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM3.75 20.25a8.25 8.25 0 0 1 16.5 0" />
+                                    </svg>
+                                    <span>@(currentUser?.Nome ?? User.Identity.Name)</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Profile">Meu perfil</a>
+                                    </li>
+                                    @if (User.IsInRole(nameof(PetStay.Models.PerfilUsuario.Tutor)))
+                                    {
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-controller="Pets" asp-action="Index">Meus pets</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-controller="Reservation" asp-action="MyReservations">Minhas reservas</a>
+                                        </li>
+                                    }
+                                    @if (User.IsInRole(nameof(PetStay.Models.PerfilUsuario.Gestor)))
+                                    {
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-controller="Reservation" asp-action="PendingForManager">Reservas Pendentes</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-controller="Reservation" asp-action="ManageReservations">Gerenciar Reservas</a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-controller="Hotels" asp-action="Create">Cadastrar hotel</a>
+                                        </li>
+                                    }
+                                    @if (User.IsInRole(nameof(PetStay.Models.PerfilUsuario.Administrador)))
+                                    {
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-controller="AdminHotels" asp-action="Index">Aprovar hotéis</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-controller="AdminUsers" asp-action="Index">Gerenciar usuários</a>
+                                        </li>
+                                    }
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                                            <button type="submit" class="dropdown-item">Sair</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    }
+                    else
+                    {
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">Entrar</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Register">Criar conta</a>
+                            </li>
+                        </ul>
+                    }
                 </div>
             </div>
         </nav>

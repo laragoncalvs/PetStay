@@ -1,0 +1,102 @@
+@model PetStay.Models.PetCreateViewModel
+
+@{
+    ViewData["Title"] = "Cadastrar pet";
+}
+
+<style>
+    .pet-page {
+        max-width: 760px;
+        margin: 0 auto;
+    }
+
+    .pet-card {
+        border: 0;
+        border-radius: 1rem;
+        box-shadow: 0 .5rem 1.5rem rgba(30, 55, 70, .12);
+    }
+
+    .pet-title {
+        color: #176b87;
+    }
+</style>
+
+<div class="pet-page px-4 py-5">
+    <div class="text-center mb-4">
+        <h1 class="h2 pet-title">Cadastrar pet</h1>
+        <p class="text-muted mb-0">Informe os dados do seu companheiro.</p>
+    </div>
+
+    @if (TempData["PetSuccess"] is string petSuccess)
+    {
+        <div class="alert alert-success" role="alert">@petSuccess</div>
+    }
+
+    <div class="card pet-card">
+        <div class="card-body p-4 p-md-5">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Nome" class="form-label"></label>
+                        <input asp-for="Nome" class="form-control" autocomplete="off" autofocus />
+                        <span asp-validation-for="Nome" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Especie" class="form-label"></label>
+                        <input asp-for="Especie" class="form-control" placeholder="Ex.: cachorro ou gato" />
+                        <span asp-validation-for="Especie" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Raca" class="form-label"></label>
+                        <input asp-for="Raca" class="form-control" />
+                        <span asp-validation-for="Raca" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="Tamanho" class="form-label"></label>
+                        <select asp-for="Tamanho" class="form-select">
+                            <option value="">Selecione</option>
+                            <option value="1">Pequeno</option>
+                            <option value="2">Médio</option>
+                            <option value="3">Grande</option>
+                        </select>
+                        <span asp-validation-for="Tamanho" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="FaixaEtaria" class="form-label"></label>
+                        <select asp-for="FaixaEtaria" class="form-select">
+                            <option value="">Selecione</option>
+                            <option value="1">Filhote</option>
+                            <option value="2">Adulto</option>
+                            <option value="3">Idoso</option>
+                        </select>
+                        <span asp-validation-for="FaixaEtaria" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mt-3 mb-4">
+                    <label asp-for="CuidadosEspecificos" class="form-label"></label>
+                    <textarea asp-for="CuidadosEspecificos" class="form-control" rows="4" placeholder="Informe alergias, medicações, restrições ou outros cuidados importantes."></textarea>
+                    <span asp-validation-for="CuidadosEspecificos" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-4">
+                    <input id="DeclaracaoVacinacao" name="DeclaracaoVacinacao" type="checkbox" value="true" class="form-check-input" @(Model.DeclaracaoVacinacao ? "checked" : null) />
+                    <label asp-for="DeclaracaoVacinacao" class="form-check-label">
+                        Declaro que as informações de vacinação deste pet estão atualizadas.
+                    </label>
+                    <span asp-validation-for="DeclaracaoVacinacao" class="text-danger d-block"></span>
+                </div>
+
+                <button type="submit" class="btn w-100 py-2 fw-semibold text-white" style="background-color: #176b87;">
+                    Cadastrar pet
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

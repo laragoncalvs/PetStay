@@ -1,0 +1,488 @@
+@model HotelSearchViewModel
+@using PetStay.Models
+
+@{
+    ViewData["Title"] = "Buscar Hotéis";
+}
+
+<style>
+    .search-box {
+        background: white;
+        border-radius: 50px;
+        box-shadow: 0 .75rem 1.5rem rgba(0, 0, 0, .12);
+        max-width: 980px;
+        padding: .5rem;
+    }
+
+    .search-field {
+        min-width: 0;
+        padding: .45rem 1rem;
+    }
+
+    .search-field + .search-field {
+        border-left: 1px solid #dee2e6;
+    }
+
+    .search-field label {
+        display: block;
+        font-size: .75rem;
+        font-weight: 700;
+        margin-bottom: .15rem;
+    }
+
+    .search-field .form-control,
+    .search-field .form-select {
+        border: 0;
+        box-shadow: none;
+        padding: 0;
+    }
+
+
+
+    .hotel-card {
+        border: 0;
+        border-radius: 1rem;
+        cursor: pointer;
+        box-shadow: 0 .25rem 1rem rgba(30, 55, 70, .1);
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .hotel-card:hover {
+        box-shadow: 0 .75rem 1.5rem rgba(30, 55, 70, .16);
+        transform: translateY(-4px);
+    }
+
+    .hotel-card img {
+        height: 190px;
+        object-fit: cover;
+    }
+
+    .hotel-card-link {
+        text-decoration: none !important;
+        color: inherit !important;
+        display: block;
+        height: 100%;
+    }
+
+    .hotel-card-link:hover {
+        text-decoration: none !important;
+    }
+
+    /* Sugestões de cidades */
+    .city-input-wrapper {
+        position: relative;
+        overflow: visible;
+    }
+
+    .city-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 300px;
+        overflow-y: auto;
+        display: none;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .city-suggestions.show {
+        display: block;
+    }
+
+    .city-suggestions li {
+        padding: 12px 15px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .city-suggestions li:last-child {
+        border-bottom: none;
+    }
+
+    .city-suggestions li:hover {
+        background-color: #f0f0f0;
+    }
+
+    .city-suggestions li strong {
+        color: #176b87;
+        font-weight: 600;
+    }
+
+    .city-suggestions li small {
+        display: block;
+        color: #999;
+        font-size: 0.85rem;
+        margin-top: 2px;
+    }
+
+    .city-suggestions li.loading {
+        padding: 12px 15px;
+        text-align: center;
+        color: #999;
+    }
+</style>
+
+<!-- Seção de Busca -->
+<section class="hero-petstay mb-5">
+    <div class="row align-items-center g-4">
+        <div class="col-12 d-flex gap-2 justify-content-center border-bottom box-shadow pb-5" style="background-color: #F9F9F9">
+            <form asp-action="Search" asp-controller="HotelsSearch" method="get" class="search-box w-100 d-flex flex-column flex-md-row align-items-stretch gap-1">
+                <div class="search-field flex-fill city-input-wrapper">
+                    <label for="cidade">Onde</label>
+                    <input id="cidade" class="form-control" type="search" name="cidade" placeholder="Cidade ou região" value="@Model.Cidade" autocomplete="off" />
+                    <ul id="cityList" class="city-suggestions"></ul>
+                </div>
+                <div class="search-field flex-fill">
+                    <label for="dataEntrada">Quando</label>
+                    <input id="dataEntrada" class="form-control" type="date" name="dataEntrada" value="@Model.DataEntrada?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="search-field flex-fill">
+                    <label for="dataSaida">Saída</label>
+                    <input id="dataSaida" class="form-control" type="date" name="dataSaida" value="@Model.DataSaida?.ToString("yyyy-MM-dd")" />
+                </div>
+                @if (User.Identity?.IsAuthenticated == true && (Model.PetsDoTutor?.Count ?? 0) > 0)
+                {
+                    <div class="search-field flex-fill">
+                        <label for="petId">Pet</label>
+                        <select id="petId" class="form-select" name="petId">
+                            <option value="">Todos os pets</option>
+                            @foreach (var pet in Model.PetsDoTutor ?? new List<Pet>())
+                            {
+                                <option value="@pet.Id" selected="@(Model.PetId == pet.Id)">
+                                    @pet.Nome
+                                </option>
+                            }
+                        </select>
+                    </div>
+                }
+                <button style="background-color: #176b87; padding: 15px" class="btn rounded-pill px-4 fw-semibold align-self-center" type="submit" aria-label="Buscar hospedagens" title="Buscar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m20 20-4-4"></path>
+                    </svg>
+                    <span class="visually-hidden">Buscar</span>
+                </button>
+            </form>
+                <button type="button" class="btn search-box  rounded-pill p-4 px-4 fw-semibold align-self-center" 
+                    data-bs-toggle="offcanvas" data-bs-target="#filtrosOffcanvas" aria-label="Abrir filtros" title="Filtrar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#176b87" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M3 6a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v5.172a1 1 0 01-.707 1.707h-2a1 1 0 01-1-1v-5.172a1 1 0 00-.293-.707L3.293 8.707A1 1 0 013 8V6z"></path>
+                </svg>
+                    Filtros
+                </button>
+        </div>
+    </div>
+</section>
+
+<!-- Título e Contador -->
+@if (Model.FoiBuscado)
+{
+    <div class="d-flex justify-content-between align-items-center mb-3 p-4 pb-0 pt-0">
+        <div>
+            <h2 class="h3 mb-1">Resultados da busca</h2>
+            <p class="text-muted mb-0">Encontramos @(Model.Resultados?.Count ?? 0) hospedagem@((Model.Resultados?.Count ?? 0) != 1 ? "s" : "") disponível@((Model.Resultados?.Count ?? 0) != 1 ? "is" : "").</p>
+        </div>
+        <span class="badge rounded-pill text-bg-light">@(Model.Resultados?.Count ?? 0) opções</span>
+    </div>
+
+    <!-- Mensagem de Erro -->
+    @if (!string.IsNullOrEmpty(Model.MensagemErro))
+    {
+        <div class="alert alert-warning alert-dismissible fade show mx-4" role="alert">
+            @Model.MensagemErro
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if ((Model.Resultados?.Count ?? 0) > 0)
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-6 g-4 p-4">
+            @foreach (var hotel in Model.Resultados!)
+            {
+                <div class="col">
+                    <button style=" border: none; background-color: transparent">
+
+                    <a asp-controller="Home" asp-action="Details" 
+                       asp-route-id="@hotel.Id"
+                       asp-route-cidade="@Model.Cidade"
+                       asp-route-estado="@Model.Estado"
+                       asp-route-dataEntrada="@Model.DataEntrada?.ToString("yyyy-MM-dd")"
+                       asp-route-dataSaida="@Model.DataSaida?.ToString("yyyy-MM-dd")"
+                       asp-route-petId="@Model.PetId"
+                       style="text-decoration: none; color: inherit; border: none; background-color: transparent"
+                       class="hotel-card-link ">
+                        <article class="card hotel-card h-100">
+                            @if (!string.IsNullOrEmpty(hotel.ImagemUrl))
+                            {
+                                <img src="@hotel.ImagemUrl" class="card-img-top" alt="Imagem do @hotel.Nome" />
+                            }
+                            else
+                            {
+                                <div style="height: 190px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center;">
+                                    <span class="text-muted">Sem imagem</span>
+                                </div>
+                            }
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex justify-content-between gap-2">
+                                    <h3 class="h5 card-title">@hotel.Nome</h3>
+                                    <span aria-label="Avaliação de @hotel.Avaliacao estrelas">★ @hotel.Avaliacao.ToString("0.0")</span>
+                                </div>
+                                <p class="text-muted mb-0">
+                                    <small>@hotel.Cidade@(string.IsNullOrWhiteSpace(hotel.Estado) ? "" : $", {hotel.Estado}")</small>
+                                </p>
+
+                                <!-- Badge de Vagas -->
+
+
+                                <div class="mt-auto d-flex justify-content-between align-items-center">
+                                    <span class="text-muted fw-normal">@hotel.Diaria.ToString("C") <small class="text-muted fw-normal">/ noite</small></span>
+                                </div>
+
+                                <!-- Detalhes Expandíveis -->
+
+
+                                <!-- Botões de Ação -->
+                                <div class="d-flex gap-2 mt-3 flex-wrap">
+
+                                    @if (User.Identity?.IsAuthenticated == true)
+                                    {
+                                        <a href="@Url.Action("Create", "Reservation", new { hotelId = hotel.Id })" 
+                                            class="btn btn-sm" onclick="event.stopPropagation();">
+                                            Reservar
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("Login", "Account")" class="btn " onclick="event.stopPropagation();">Fazer Login</a>
+                                    }
+                                </div>
+                            </div>
+                        </article>
+                    </a>
+                    </button>
+                </div>
+            }
+        </div>
+    }
+}
+
+<script>
+    // Autocomplete de cidades
+    const cidadeInput = document.getElementById('cidade');
+    const cityList = document.getElementById('cityList');
+    let debounceTimer;
+
+    console.log('Script de autocomplete carregado');
+
+    cidadeInput.addEventListener('keyup', (e) => {
+        clearTimeout(debounceTimer);
+        const termo = e.target.value.trim();
+
+        console.log(`Termo digitado: ${termo}`);
+
+        if (termo.length < 2) {
+            cityList.classList.remove('show');
+            cityList.innerHTML = '';
+            return;
+        }
+
+        // Mostrar loading
+        cityList.innerHTML = '<li class="loading">Carregando...</li>';
+        cityList.classList.add('show');
+
+        debounceTimer = setTimeout(async () => {
+            try {
+                const url = `/api/cities/search?termo=${encodeURIComponent(termo)}`;
+                console.log(`Chamando API: ${url}`);
+
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP ${response.status}`);
+                }
+
+                const cidades = await response.json();
+                console.log(`Cidades retornadas:`, cidades);
+
+                if (!cidades || cidades.length === 0) {
+                    cityList.innerHTML = '<li class="loading">Nenhuma cidade encontrada</li>';
+                    return;
+                }
+
+                cityList.innerHTML = cidades.map(cidade => `
+                    <li onclick="selecionarCidade('${cidade.nome.replace(/'/g, "\\'")}', '${cidade.estado}')">
+                        <strong>${cidade.nome}</strong>
+                        <small>${cidade.estado} - ${cidade.regiao}</small>
+                    </li>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao buscar cidades:', error);
+                cityList.innerHTML = '<li class="loading">Erro ao buscar cidades: ' + error.message + '</li>';
+            }
+        }, 300);
+    });
+
+    // Fechar sugestões ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.city-input-wrapper')) {
+            cityList.classList.remove('show');
+        }
+    });
+
+    // Função para selecionar cidade
+    function selecionarCidade(cidade, estado) {
+        console.log(`Selecionada: ${cidade} - ${estado}`);
+        document.getElementById('cidade').value = cidade;
+        document.getElementById('estado') && (document.getElementById('estado').value = estado);
+        cityList.classList.remove('show');
+    }
+
+    // Função para aplicar ordenação
+    function aplicarOrdenacao() {
+        const sortBy = document.getElementById('sortBy').value;
+        const filtroForm = document.getElementById('filtroForm');
+        const sortByInput = document.createElement('input');
+        sortByInput.type = 'hidden';
+        sortByInput.name = 'sortBy';
+        sortByInput.value = sortBy;
+        filtroForm.appendChild(sortByInput);
+        filtroForm.submit();
+    }
+
+</script>
+
+<!-- Modal de Reserva (Placeholder para futuro) -->
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <div class="modal fade" id="modalReserva" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Reserva</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Hotel: <strong id="hotelNomeReserva"></strong></p>
+                    <p>Valor total: <strong id="valorTotalReserva"></strong></p>
+                    <p class="text-muted"><small>Funcionalidade de reserva em desenvolvimento.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" disabled>Confirmar Reserva</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('shown.bs.modal', function (e) {
+            if (e.target?.id === 'modalReserva') {
+                const button = e.relatedTarget;
+                document.getElementById('hotelNomeReserva').textContent = button?.dataset.hotelNome || '';
+                document.getElementById('valorTotalReserva').textContent = 'R$ ' + (button?.dataset.valorTotal || '0');
+            }
+        });
+    </script>
+}
+
+<!-- Offcanvas de Filtros -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="filtrosOffcanvas" aria-labelledby="filtrosOffcanvasLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="filtrosOffcanvasLabel">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="me-2" style="display: inline;">
+                <path d="M3 6a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v5.172a1 1 0 01-.707 1.707h-2a1 1 0 01-1-1v-5.172a1 1 0 00-.293-.707L3.293 8.707A1 1 0 013 8V6z"></path>
+            </svg>
+            Filtrar Resultados
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+    </div>
+    <div class="offcanvas-body">
+        <form asp-action="Search" asp-controller="HotelsSearch" method="get">
+            <!-- Manter parâmetros de busca -->
+            <input type="hidden" name="cidade" value="@Model.Cidade" />
+            <input type="hidden" name="estado" value="@Model.Estado" />
+            <input type="hidden" name="dataEntrada" value="@Model.DataEntrada?.ToString("yyyy-MM-dd")" />
+            <input type="hidden" name="dataSaida" value="@Model.DataSaida?.ToString("yyyy-MM-dd")" />
+            <input type="hidden" name="petId" value="@Model.PetId" />
+
+            <!-- Filtro de Valor -->
+            <div class="mb-4">
+                <h6 class="fw-bold mb-3">Faixa de Valor</h6>
+                <div class="d-flex flex-row gap-1">
+
+                <div class="mb-3">
+                    <label for="filtroValorMinimo" class="form-label small">Valor Mínimo (R$)</label>
+                    <input type="number" id="filtroValorMinimo" name="valorMinimo" class="form-control" 
+                        placeholder="0,00" step="0.01" value="@Model.ValorMinimo" />
+                </div>
+                <div class="mb-3">
+                    <label for="filtroValorMaximo" class="form-label small">Valor Máximo (R$)</label>
+                    <input type="number" id="filtroValorMaximo" name="valorMaximo" class="form-control" 
+                        placeholder="99.999,99" step="0.01" value="@Model.ValorMaximo" />
+                </div>
+                </div>
+            </div>
+
+            <!-- Ordenação -->
+            <div class="mb-4">
+                <h6 class="fw-bold mb-3">Ordenar por</h6>
+                <select id="filtroSortBy" name="sortBy" class="form-select">
+                    <option value="avaliacao" selected="@(Model.SortBy == "avaliacao")">Melhor Avaliação</option>
+                    <option value="valor" selected="@(Model.SortBy == "valor")">Menor Valor</option>
+                    <option value="distancia" selected="@(Model.SortBy == "distancia")">Distância</option>
+                </select>
+            </div>
+
+            <!-- Informações do Pet Selecionado -->
+            @if (Model.PetSelecionado != null)
+            {
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">Filtros do Pet: <strong>@Model.PetSelecionado.Nome</strong></h6>
+                    <div class="alert alert-info py-2 px-3 mb-0">
+                        <div class="small mb-2">
+                            <strong>Tamanho:</strong> 
+                            @(Model.PetSelecionado.Tamanho switch { 
+                                TamanhoPet.Pequeno => "Pequeno",
+                                TamanhoPet.Medio => "Médio", 
+                                TamanhoPet.Grande => "Grande",
+                                _ => "Desconhecido"
+                            })
+                        </div>
+                        <div class="small">
+                            <strong>Faixa Etária:</strong> 
+                            @(Model.PetSelecionado.FaixaEtaria switch {
+                                FaixaEtariaPet.Filhote => "Filhote",
+                                FaixaEtariaPet.Adulto => "Adulto",
+                                FaixaEtariaPet.Idoso => "Idoso",
+                                _ => "Desconhecida"
+                            })
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Botões -->
+            <div class="d-flex flex-row gap-2">
+                <button type="submit" class="btn btn-primary" style="background-color: #176b87; width: 100%; border-radius: 50px">
+                  
+                    Aplicar Filtros
+                </button>
+                <a style="width: 100%;border-radius: 50px" href="@Url.Action("Search", "HotelsSearch", new { cidade = Model.Cidade, dataEntrada = Model.DataEntrada?.ToString("yyyy-MM-dd"), dataSaida = Model.DataSaida?.ToString("yyyy-MM-dd"), petId = Model.PetId })"
+                    class="btn btn-outline-secondary">
+                    Limpar Filtros
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

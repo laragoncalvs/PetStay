@@ -1,0 +1,102 @@
+@model PetStay.Models.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Criar conta";
+}
+
+<style>
+    .register-page {
+        max-width: 720px;
+        margin: 0 auto;
+    }
+
+    .register-card {
+        border: 0;
+        border-radius: 1rem;
+        box-shadow: 0 .5rem 1.5rem rgba(30, 55, 70, .12);
+    }
+
+    .register-title {
+        color: #176b87;
+    }
+</style>
+
+<div class="register-page px-4 py-5">
+    <div class="text-center mb-4">
+        <h1 class="h2 register-title">Criar conta</h1>
+        <p class="text-muted mb-0">Faça parte da comunidade PetStay.</p>
+    </div>
+
+    <div class="card register-card">
+        <div class="card-body p-4 p-md-5">
+            <form asp-action="Register" method="post">
+                <div asp-validation-summary="ModelOnly" class="mb-3" role="alert"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Nome" class="form-label"></label>
+                    <input asp-for="Nome" class="form-control" autocomplete="name" />
+                    <span asp-validation-for="Nome"></span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" autocomplete="email" />
+                        <span asp-validation-for="Email"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Telefone" class="form-label"></label>
+                        <input asp-for="Telefone" class="form-control" autocomplete="tel" />
+                        <span asp-validation-for="Telefone"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3 mt-3">
+                    <label asp-for="Perfil" class="form-label"></label>
+                    <select asp-for="Perfil" class="form-select">
+                        <option value="">Selecione uma opção</option>
+                        <option value="Tutor">Tutor</option>
+                        @if (User.IsInRole(nameof(PetStay.Models.PerfilUsuario.Gestor)))
+                        {
+                            <option value="Gestor">Gestor</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Perfil"></span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Senha" class="form-label"></label>
+                        <input asp-for="Senha" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="Senha"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ConfirmacaoSenha" class="form-label"></label>
+                        <input asp-for="ConfirmacaoSenha" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="ConfirmacaoSenha"></span>
+                    </div>
+                </div>
+
+                <div class="form-check mt-4 mb-4">
+                    <input id="AceitouTermos" name="AceitouTermos" type="checkbox" value="true" class="form-check-input" @(Model.AceitouTermos ? "checked" : null) />
+                    <label asp-for="AceitouTermos" class="form-check-label">
+                        Aceito os termos de uso e a política de privacidade do PetStay.
+                    </label>
+                    <div class="small text-muted mt-2">
+                        Ao criar sua conta, você concorda em fornecer informações verdadeiras,
+                        respeitar os demais usuários e utilizar a plataforma de forma responsável.
+                    </div>
+                    <span asp-validation-for="AceitouTermos" class="d-block"></span>
+                </div>
+
+                <button type="submit" class="btn w-100 py-2 fw-semibold text-white" style="background-color: #176b87;">
+                    Criar conta
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,117 @@
+@model List<Reservation>
+
+@{
+    ViewData["Title"] = "Reservas Pendentes";
+}
+
+<div class="container my-5">
+    <div class="row align-items-center mb-4">
+        <div class="col">
+            <h1 class="fw-bold">Reservas Pendentes</h1>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-info" role="alert">
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            <strong>Nenhuma reserva pendente no momento.</strong>
+            <br />
+            Quando tutores fizerem reservas em seus hotéis, elas aparecerão aqui para você aprovar ou rejeitar.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Hotel</th>
+                        <th>Tutor</th>
+                        <th>Pet</th>
+                        <th>Data Entrada</th>
+                        <th>Data Saída</th>
+                        <th>Valor Total</th>
+                        <th>Solicitado em</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var reservation in Model)
+                    {
+                        <tr>
+                            <td>@reservation.Hotel?.Nome</td>
+                            <td>@reservation.Tutor?.Nome</td>
+                            <td>@reservation.Pet?.Nome</td>
+                            <td>@reservation.DataEntrada.ToString("dd/MM/yyyy")</td>
+                            <td>@reservation.DataSaida.ToString("dd/MM/yyyy")</td>
+                            <td>@reservation.ValorTotal.ToString("C")</td>
+                            <td>@reservation.SolicitadaEm.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <button type="button" class="btn btn-sm px-3 py-2 fw-semibold text-white" 
+                                        style="background-color: #176b87; border-radius: 50px; border: none;"
+                                        onclick="acceptReservation(@reservation.Id)">
+                                    Aceitar
+                                </button>
+                                <button type="button" class="btn btn-sm px-3 py-2 fw-semibold" 
+                                        style="border: 1px solid #ccc; border-radius: 50px; background: white; color: #333;"
+                                        data-bs-toggle="modal" data-bs-target="#rejectModal"
+                                        onclick="setRejectReservationId(@reservation.Id)">
+                                    Recusar
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Modal de Rejeição -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold">Recusar Reserva</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="rejectForm" method="post">
+                <div class="modal-body">
+                    <label class="form-label fw-semibold">Motivo da rejeição</label>
+                    <textarea class="form-control" name="motivo" rows="4" placeholder="Descreva o motivo da rejeição..." required></textarea>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn px-4 py-2 fw-semibold" style="border: 1px solid #ccc; border-radius: 50px; background: white; color: #333;" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn px-4 py-2 fw-semibold text-white" style="background-color: #176b87; border-radius: 50px; border: none;">Confirmar Rejeição</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentReservationId = null;
+
+    function setRejectReservationId(reservationId) {
+        currentReservationId = reservationId;
+        const form = document.getElementById('rejectForm');
+        form.action = `/Reservation/reject/${reservationId}`;
+    }
+
+    function acceptReservation(reservationId) {
+        if (confirm('Tem certeza que deseja aceitar esta reserva?')) {
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = `/Reservation/accept/${reservationId}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
