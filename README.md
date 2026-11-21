@@ -4,11 +4,7 @@ Sistema de gerenciamento de reservas para hotéis de pets, desenvolvido em ASP.N
 
 ## 📋 Requisitos
 
-Apenas isso é necessário para rodar:
-
 - **SDK .NET 10.0+** - [Download aqui](https://dotnet.microsoft.com/download/dotnet/10.0)
-
-Pronto! Nada mais é necessário.
 
 ## 🚀 Como Rodar (3 passos)
 
@@ -31,8 +27,8 @@ http://localhost:5000
 
 ## 🔐 Credenciais Padrão
 
-- **Email**: `admin@petsstay.com`
-- **Senha**: `Admin@123`
+- **Email**: `admin@petstay.com`
+- **Senha**: `Teste1234!`
 
 ## 📁 Estrutura do Projeto
 
@@ -46,15 +42,6 @@ PetStay/
 └── wwwroot/        # CSS, JS, imagens
 ```
 
-## 🌐 Funcionalidades
-
-✅ Autenticação de usuários (Tutor, Gestor, Admin)
-✅ Gerenciamento de hotéis
-✅ Cadastro de pets
-✅ Sistema de reservas com status
-✅ Check-in e check-out
-✅ Avaliações e reviews
-✅ Cancelamento automático de reservas pendentes
 
 ## 🛠️ Tecnologias
 
@@ -72,7 +59,3 @@ dotnet restore
 dotnet build
 dotnet run
 ```
-
----
-
-**Projeto de Faculdade** 🎓
