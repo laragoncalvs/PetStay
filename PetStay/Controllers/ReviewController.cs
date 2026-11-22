@@ -37,9 +37,6 @@ namespace PetStay.Controllers
             if (reservation == null)
                 return NotFound();
 
-            // Verificar se a reserva foi concluída (check-out passou)
-            if (reservation.DataSaida > DateTime.Now.Date)
-                return BadRequest(new { message = "Você só pode avaliar um hotel após o check-out." });
 
             // Verificar se já existe review
             var existingReview = await _context.Reviews
@@ -79,10 +76,6 @@ namespace PetStay.Controllers
 
             if (reservation == null)
                 return NotFound();
-
-            // Verificar se a reserva foi concluída
-            if (reservation.DataSaida > DateTime.Now.Date)
-                return BadRequest(new { message = "Você só pode avaliar um hotel após o check-out." });
 
             // Verificar se já existe review
             var existingReview = await _context.Reviews

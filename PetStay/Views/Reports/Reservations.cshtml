@@ -1,0 +1,354 @@
+@model ReservationReportViewModel
+
+@{
+    ViewData["Title"] = "Relatório de Reservas";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<style>
+    .report-card {
+        border: 0;
+        border-radius: 1rem;
+        box-shadow: 0 .25rem 1rem rgba(30, 55, 70, .1);
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .report-card:hover {
+        box-shadow: 0 .75rem 1.5rem rgba(30, 55, 70, .16);
+        transform: translateY(-4px);
+    }
+
+    .report-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .report-card h6 {
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+
+    .report-card h3 {
+        font-size: 1.75rem;
+        margin: 0.5rem 0;
+    }
+
+    .filter-card {
+        border: 0;
+        border-radius: 1rem;
+        box-shadow: 0 .25rem 1rem rgba(30, 55, 70, .1);
+    }
+
+    .filter-card .card-body {
+        padding: 1.5rem;
+    }
+</style>
+
+<div class="container-lg my-5">
+    <!-- Cabeçalho -->
+    <div class="row align-items-center mb-5">
+        <div class="col">
+            <h1 class="fw-bold mb-2">Relatório de Reservas</h1>
+            <p class="text-muted mb-0">@Model.NomeHotel • @Model.DataInicio.ToString("dd/MM/yyyy") a @Model.DataFim.ToString("dd/MM/yyyy")</p>
+        </div>
+    </div>
+
+    <!-- Filtro de Período -->
+    <div class="card filter-card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="dataInicio" class="form-label fw-bold">Data Início</label>
+                    <input type="date" class="form-control" id="dataInicio" name="dataInicio" 
+                           value="@Model.DataInicio.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label for="dataFim" class="form-label fw-bold">Data Fim</label>
+                    <input type="date" class="form-control" id="dataFim" name="dataFim" 
+                           value="@Model.DataFim.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-6 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill" style="background-color: #176b87;">Filtrar</button>
+                    <a href="@Url.Action("Reservations")" class="btn btn-outline-secondary flex-fill">Resetar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cards de Resumo -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-5">
+        <div class="col">
+            <div class="card report-card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase fw-bold mb-3">💰 Faturamento Total</h6>
+                    <h3 class="fw-bold text-success">R$ @Model.TotalFaturado.ToString("N2")</h3>
+                    <small class="text-muted">Período selecionado</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card report-card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase fw-bold mb-3">📊 Taxa de Ocupação</h6>
+                    <h3 class="fw-bold" style="color: #0d6efd;">@Model.TaxaOcupacao.ToString("N1")%</h3>
+                    <small class="text-muted">Média do período</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card report-card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase fw-bold mb-3">✅ Reservas Ativas</h6>
+                    <h3 class="fw-bold" style="color: #17a2b8;">@Model.ReservasConfirmadas</h3>
+                    <small class="text-muted">Confirmadas + Em progresso</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card report-card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase fw-bold mb-3">🏨 Capacidade Total</h6>
+                    <h3 class="fw-bold" style="color: #ffc107;">@Model.CapacidadeHotel</h3>
+                    <small class="text-muted">Vagas disponíveis</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row mb-5">
+        <!-- Gráfico de Status -->
+        <div class="col-lg-6 mb-4">
+            <div class="card report-card h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-4">📈 Reservas por Status</h5>
+                    <canvas id="chartStatus"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Faturamento -->
+        <div class="col-lg-6 mb-4">
+            <div class="card report-card h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-4">💰 Faturamento Diário</h5>
+                    <canvas id="chartFaturamento"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Ocupação -->
+    <div class="row mb-5">
+        <div class="col-lg-12">
+            <div class="card report-card">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-4">📊 Ocupação Diária (%)</h5>
+                    <canvas id="chartOcupacao"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Reservas -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card report-card">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-4">📋 Detalhes das Reservas</h5>
+
+                    @if (!Model.Reservas.Any())
+                    {
+                        <div class="alert alert-info mb-0" role="alert">
+                            <strong>Nenhuma reserva encontrada</strong> no período selecionado.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Hotel</th>
+                                        <th>Pet</th>
+                                        <th>Tutor</th>
+                                        <th>Data Entrada</th>
+                                        <th>Data Saída</th>
+                                        <th>Diárias</th>
+                                        <th>Status</th>
+                                        <th>Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var reserva in Model.Reservas)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <small>@reserva.HotelNome</small>
+                                            </td>
+                                            <td>
+                                                <strong>@reserva.PetNome</strong>
+                                            </td>
+                                            <td>@reserva.TutorNome</td>
+                                            <td>@reserva.DataEntrada.ToString("dd/MM/yyyy")</td>
+                                            <td>@reserva.DataSaida.ToString("dd/MM/yyyy")</td>
+                                            <td>@reserva.DiariasReservadas</td>
+                                            <td>
+                                                @{
+                                                    var badgeClass = reserva.Status switch
+                                                    {
+                                                        StatusReserva.Pendente => "badge bg-warning",
+                                                        StatusReserva.Confirmada => "badge bg-info",
+                                                        StatusReserva.EmProgresso => "badge bg-primary",
+                                                        StatusReserva.Finalizada => "badge bg-success",
+                                                        StatusReserva.Cancelada => "badge bg-danger",
+                                                        _ => "badge bg-secondary"
+                                                    };
+                                                }
+                                                <span class="@badgeClass">@reserva.Status.ToString()</span>
+                                            </td>
+                                            <td>
+                                                <strong>R$ @reserva.ValorTotal.ToString("N2")</strong>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Gráfico de Status
+        const ctxStatus = document.getElementById('chartStatus').getContext('2d');
+        new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pendente', 'Confirmada', 'Em Progresso', 'Finalizada', 'Cancelada'],
+                datasets: [{
+                    label: 'Quantidade',
+                    data: [@Model.TotalPendentes, @Model.TotalConfirmadas, @Model.TotalEmProgresso, @Model.TotalFinalizadas, @Model.TotalCanceladas],
+                    backgroundColor: [
+                        '#ffc107',
+                        '#17a2b8',
+                        '#0d6efd',
+                        '#198754',
+                        '#dc3545'
+                    ],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { 
+                            padding: 15,
+                            font: { size: 12 }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Faturamento
+        const ctxFaturamento = document.getElementById('chartFaturamento').getContext('2d');
+        const datasFaturamento = @Json.Serialize(Model.FaturaimentoPorDia.Select(f => f.Data.ToString("dd/MM")));
+        const valoresFaturamento = @Json.Serialize(Model.FaturaimentoPorDia.Select(f => f.Valor));
+
+        new Chart(ctxFaturamento, {
+            type: 'line',
+            data: {
+                labels: datasFaturamento,
+                datasets: [{
+                    label: 'Faturamento (R$)',
+                    data: valoresFaturamento,
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#28a745',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { font: { size: 12 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Faturamento (R$)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Ocupação
+        const ctxOcupacao = document.getElementById('chartOcupacao').getContext('2d');
+        const datasOcupacao = @Json.Serialize(Model.OcupacaoPorDia.Select(o => o.Data.ToString("dd/MM")));
+        const valoresOcupacao = @Json.Serialize(Model.OcupacaoPorDia.Select(o => o.Ocupacao));
+
+        new Chart(ctxOcupacao, {
+            type: 'line',
+            data: {
+                labels: datasOcupacao,
+                datasets: [{
+                    label: 'Taxa de Ocupação (%)',
+                    data: valoresOcupacao,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#0d6efd',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { font: { size: 12 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Ocupação (%)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

@@ -15,11 +15,42 @@
 <div class="container py-5">
     <div class="row">
         <div class="col-lg-8 mx-auto">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h3 class="mb-0">Reserva @statusLabel</h3>
+            <div class=" mb-4">
+                <div class="mb-3">
+                    <a style="color: black" class="fw-bold " href="@Url.Action("MyReservations", "Reservation")" >
+                        ← voltar para minhas reservas
+                    </a>
                 </div>
-                <div class="card-body">
+                <div >
+                    <img src="@Model.Hotel?.ImagemUrl" style="width: 100%; height: 300px; object-fit: cover; border-radius: 30px; margin-bottom: 20px"/>
+                  
+                    <h2> @Model?.Hotel?.Nome</h2>
+                    <p class="mb-0"> 📍 @Model?.Hotel?.Endereco</p>
+                    <p class="mb-0">📅 @Model?.DataEntrada.ToString("dd/MM/yyyy") às @Model?.HorarioEntrada?.ToString(@"hh\:mm") - @Model?.DataSaida.ToString("dd/MM/yyyy") às @Model?.HorarioSaida?.ToString(@"hh\:mm"), @((Model?.DataSaida - Model?.DataEntrada)?.Days ?? 0) dia(s) </p>
+
+           
+                    <p> 🕒Reservado em @Model?.CriadaEm.ToString("dd/MM/yyyy  HH:mm")</p>
+                  
+
+
+                    <div class=" mb-4">
+                     <hr />
+                        <div ">
+                            <div class="row mb-2">
+                                <div class="col-6"><strong>Diária Base:</strong></div>
+                                <div class="col-6 text-end">R$ @Model?.ValorDiariaBase.ToString("F2")</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6"><strong>Adicional Idade:</strong></div>
+                                <div class="col-6 text-end">R$ @Model?.ValorAdicionalIdade.ToString("F2")</div>
+                            </div>
+                            <hr />
+                            <div class="row">
+                                <div class="col-6"><h5>Valor Total:</h5></div>
+                                <div class="col-6 text-end"><h5>R$ @Model?.ValorTotal.ToString("F2")</h5></div>
+                            </div>
+                        </div>
+                    </div>
                     @if (Model?.Status == StatusReserva.Pendente)
                     {
                         <div class="alert alert-warning" role="alert">
@@ -43,74 +74,11 @@
                             @if (!string.IsNullOrEmpty(Model?.MotivoRejeicao))
                             {
                                 <br />
-                                <text>Motivo: </text>@Model.MotivoRejeicao
+                                <text>Motivo: </text>
+                                @Model.MotivoRejeicao
                             }
                         </div>
                     }
-
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">Informações da Reserva</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <p><strong>ID Reserva:</strong> @Model?.Id</p>
-                                    <p><strong>Status:</strong> @Model?.Status</p>
-                                    <p><strong>Hotel:</strong> @Model?.Hotel?.Nome</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Pet:</strong> @Model?.Pet?.Nome</p>
-                                    <p><strong>Data Criação:</strong> @Model?.CriadaEm.ToString("dd/MM/yyyy HH:mm")</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">Datas e Horários</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <p><strong>Check-in:</strong></p>
-                                    <p>@Model?.DataEntrada.ToString("dd/MM/yyyy") às @Model?.HorarioEntrada?.ToString(@"hh\:mm")</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <p><strong>Check-out:</strong></p>
-                                    <p>@Model?.DataSaida.ToString("dd/MM/yyyy") às @Model?.HorarioSaida?.ToString(@"hh\:mm")</p>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <p><strong>Duração:</strong> @((Model?.DataSaida - Model?.DataEntrada)?.Days ?? 0) dia(s)</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">Resumo de Valores</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row mb-2">
-                                <div class="col-6"><strong>Diária Base:</strong></div>
-                                <div class="col-6 text-end">R$ @Model?.ValorDiariaBase.ToString("F2")</div>
-                            </div>
-                            <div class="row mb-2">
-                                <div class="col-6"><strong>Adicional Idade:</strong></div>
-                                <div class="col-6 text-end">R$ @Model?.ValorAdicionalIdade.ToString("F2")</div>
-                            </div>
-                            <hr />
-                            <div class="row">
-                                <div class="col-6"><h5>Valor Total:</h5></div>
-                                <div class="col-6 text-end"><h5>R$ @Model?.ValorTotal.ToString("F2")</h5></div>
-                            </div>
-                        </div>
-                    </div>
-
                     @if (!string.IsNullOrEmpty(Model?.ObservacoesTutor))
                     {
                         <div class="card mb-4">
@@ -123,16 +91,138 @@
                         </div>
                     }
 
-                    <div class="d-grid gap-2">
-                        <a href="@Url.Action("MyReservations", "Reservation")" class="btn btn-primary btn-lg">
-                            Ver Minhas Reservas
-                        </a>
-                        <a href="@Url.Action("Index", "HotelsSearch")" class="btn btn-outline-secondary">
-                            Fazer Outra Reserva
-                        </a>
-                    </div>
+                    <!-- Botão de Avaliar -->
+                    @if (Model?.Status == StatusReserva.Finalizada)
+                    {
+                        <div class="mb-4">
+                            <button type="button" style="border: 2px solid #176b87; color: #176b87" class="btn  btn-lg "
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#reviewModal"
+                                    onclick="initReviewModal(@Model.Id, '@Model.Hotel?.Nome', '@Model.Pet?.Nome')">
+                                ★  Avaliar hotel
+                            </button>
+                        </div>
+                    }
+
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal de Avaliação -->
+<div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold">Avaliar hotel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="reviewForm" method="post" action="/api/review/create">
+                <div class="modal-body">
+                    <input type="hidden" id="reservationId" name="reservationId" />
+                    <input type="hidden" id="hotelId" name="hotelId" />
+
+                    <!-- Informações da Reserva -->
+                    <div class="mb-4">
+                        <p class="text-muted mb-1">
+                            <small>Hotel:</small>
+                        </p>
+                        <p class="fw-bold" id="hotelName"></p>
+                        <p class="text-muted mb-1">
+                            <small>Pet:</small>
+                        </p>
+                        <p class="fw-bold" id="petName"></p>
+                    </div>
+
+                    <hr />
+
+                    <!-- Nota com Número -->
+                    <div class="mb-4">
+                        <label for="nota" class="form-label fw-bold d-block">Sua Nota (1 a 5) ⭐</label>
+                        <input type="number" class="form-control" id="nota" name="nota" 
+                               min="1" max="5" placeholder="Digite uma nota de 1 a 5"
+                               style="font-size: 1.2rem; padding: 0.75rem;" required />
+                        <small class="text-muted d-block mt-2">Digite um número entre 1 (péssimo) e 5 (excelente)</small>
+                    </div>
+
+
+                 
+
+                    <!-- Comentário -->
+                    <div class="mb-3">
+                        <label for="comentario" class="form-label">Comentário da Avaliação</label>
+                        <textarea class="form-control" id="comentario" name="comentario" rows="4"
+                                  placeholder="Compartilhe sua experiência... Fale sobre: higiene, conforto, atendimento, segurança do pet, etc."
+                                  maxlength="500"></textarea>
+                        <small class="text-muted d-block mt-2">
+                            <span id="charCount">0</span> / 500 caracteres
+                        </small>
+                    </div>
+
+                    <!-- Dicas -->
+                   
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="submitReviewBtn">Enviar Avaliação</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Sem estilos especiais necessários para input number */
+</style>
+
+<script>
+    function initReviewModal(reservationId, hotelName, petName) {
+        document.getElementById('reservationId').value = reservationId;
+        document.getElementById('hotelName').textContent = hotelName;
+        document.getElementById('petName').textContent = petName;
+
+        // Limpar formulário
+        document.getElementById('reviewForm').reset();
+        document.getElementById('charCount').textContent = '0';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Contador de caracteres
+        const textarea = document.getElementById('comentario');
+        textarea?.addEventListener('input', function () {
+            document.getElementById('charCount').textContent = this.value.length;
+        });
+    });
+
+    // Submissão do formulário
+    document.getElementById('reviewForm')?.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const nota = document.getElementById('nota').value;
+        if (!nota || nota < 1 || nota > 5) {
+            alert('Por favor, digite uma nota entre 1 e 5');
+            return;
+        }
+
+        const formData = new FormData(this);
+        try {
+            const response = await fetch('/api/review/create', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                alert('Avaliação enviada com sucesso!');
+                location.reload();
+            } else {
+                const error = await response.json();
+                alert('Erro: ' + (error.message || 'Não foi possível enviar a avaliação'));
+            }
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro ao enviar avaliação');
+        }
+    });
+</script>

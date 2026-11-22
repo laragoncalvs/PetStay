@@ -16,9 +16,7 @@
         box-shadow: 0 .5rem 1.5rem rgba(30, 55, 70, .12);
     }
 
-    .pets-title {
-        color: #176b87;
-    }
+ 
 </style>
 
 <div class="pets-page px-4 py-5">
@@ -27,7 +25,7 @@
             <h1 class="h2 pets-title mb-1">Meus pets</h1>
             <p class="text-muted mb-0">Consulte e mantenha atualizados os dados dos seus pets.</p>
         </div>
-        <a asp-action="Create" class="btn text-white fw-semibold" style="background-color: #176b87;">Cadastrar pet</a>
+        <a asp-action="Create" class="btn text-white fw-semibold" style="background-color: #176b87;">+ Cadastrar pet</a>
     </div>
 
     @if (TempData["PetSuccess"] is string petSuccess)
@@ -55,18 +53,23 @@
                         <div class="card-body d-flex flex-column p-4">
                             <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                                 <div>
-                                    <h2 class="h4 mb-1">@pet.Nome</h2>
+                                    <h2 style="color: #176b87"  class="h4 mb-1">@pet.Nome</h2>
                                     <p class="text-muted mb-0">@pet.Especie · @pet.Raca</p>
                                 </div>
                                 <div class="fw-500">@pet.FaixaEtaria</div>
                             </div>
 
                             <dl class="row small mb-3">
-                                <dt class="col-6">Tamanho</dt>
-                                <dd class="col-6 text-end">@pet.Tamanho</dd>
-                                <dt class="col-6">Vacinação</dt>
-                                <dd class="col-6 text-end">@(pet.DeclaracaoVacinacao ? "Declarada" : "Pendente")</dd>
-                            </dl>
+                                <div class="col-6">
+                                <dt >Tamanho</dt>
+                                <dd class="col-6 ">@pet.Tamanho</dd>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <dt class="text-end">Vacinação</dt>
+                                    <dd class=" text-end">@(pet.DeclaracaoVacinacao ? "Declarada" : "Pendente")</dd>
+                            </div>
+
+                                </dl>
 
                             @if (!string.IsNullOrWhiteSpace(pet.CuidadosEspecificos))
                             {
@@ -76,9 +79,9 @@
                             {
                                 <p class="small text-muted flex-grow-1 mb-3">Nenhum cuidado específico informado.</p>
                             }
-
+                            <hr/>
                             <div class="d-flex gap-2">
-                                <a asp-action="Edit" asp-route-id="@pet.Id" class="btn btn-outline-secondary flex-fill">Editar</a>
+                                <a asp-action="Edit" asp-route-id="@pet.Id" style="border: 1px solid #176b87" class="btn btn-outline-secondary flex-fill">Editar</a>
                                 <form asp-action="Delete" asp-route-id="@pet.Id" method="post" class="flex-fill" onsubmit="return confirm('Deseja realmente excluir este pet?');">
                                     <button type="submit" class="btn btn-outline-danger w-100">Excluir</button>
                                 </form>
