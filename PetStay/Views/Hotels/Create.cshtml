@@ -55,7 +55,7 @@
                     </div>
                     <div class="col-md-4">
                         <label asp-for="Telefone" class="form-label"></label>
-                        <input asp-for="Telefone" class="form-control" autocomplete="tel" />
+                        <input asp-for="Telefone" class="form-control" autocomplete="tel" inputmode="numeric" maxlength="15" data-mascara-telefone="true" />
                         <span asp-validation-for="Telefone"></span>
                     </div>
                     <div class="col-md-8">

@@ -54,7 +54,7 @@
 
                         <div class="mb-4">
                             <label asp-for="DadosPessoais.Telefone" class="form-label"></label>
-                            <input asp-for="DadosPessoais.Telefone" class="form-control" autocomplete="tel" />
+                            <input asp-for="DadosPessoais.Telefone" class="form-control" autocomplete="tel" inputmode="numeric" maxlength="15" data-mascara-telefone="true" />
                             <span asp-validation-for="DadosPessoais.Telefone"></span>
                         </div>
 
