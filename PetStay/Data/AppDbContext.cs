@@ -25,6 +25,12 @@ namespace PetStay.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<ApplicationUser>()
+                .HasOne(u => u.GestorDono)
+                .WithMany(u => u.GestoresFuncionarios)
+                .HasForeignKey(u => u.GestorDonoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Tarifa>()
                 .HasOne(t => t.Hotel)
                 .WithMany(h => h.Tarifas)

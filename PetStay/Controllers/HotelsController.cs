@@ -21,10 +21,16 @@ namespace PetStay.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            var gestor = await _userManager.GetUserAsync(User);
+            if (gestor == null)
+                return Challenge();
+            if (gestor.GestorDonoId != null)
+                return Forbid();
             return View(new HotelCreateViewModel());
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -40,6 +46,9 @@ namespace PetStay.Controllers
             {
                 return Challenge();
             }
+
+            if (gestor.GestorDonoId != null)
+                return Forbid();
 
             var tarifas = new List<Tarifa>();
             if (model.PortesAceitos.Contains(TamanhoPet.Pequeno))
@@ -71,7 +80,7 @@ namespace PetStay.Controllers
                 HorarioFechamento = model.HorarioFechamento,
                 PortesAceitos = string.Join(",", model.PortesAceitos.Select(porte => (int)porte)),
                 FaixasEtariasAceitas = string.Join(",", model.FaixasEtariasAceitas.Select(faixa => (int)faixa)),
-                GestorId = gestor.Id,
+                GestorId = gestor.GestorDonoId ?? gestor.Id,
                 Aprovado = false,
                 Ativo = false,
                 StatusAprovacao = StatusAprovacaoHotel.Pendente

@@ -320,7 +320,7 @@ namespace PetStay.Controllers
 
             // Buscar hotÃ©is onde o usuÃ¡rio Ã© gestor
             var hoteisDosGestores = await _context.Hotels
-                .Where(h => h.GestorId == user.Id)
+                .Where(h => h.GestorId == (user.GestorDonoId ?? user.Id))
                 .Select(h => h.Id)
                 .ToListAsync();
 
@@ -387,7 +387,7 @@ namespace PetStay.Controllers
 
             // Buscar hotéis onde o usuário é gestor
             var hoteisDosGestores = await _context.Hotels
-                .Where(h => h.GestorId == user.Id)
+                .Where(h => h.GestorId == (user.GestorDonoId ?? user.Id))
                 .Select(h => h.Id)
                 .ToListAsync();
 
@@ -421,7 +421,7 @@ namespace PetStay.Controllers
 
             // Buscar hotÃ©is onde o usuÃ¡rio Ã© gestor
             var hoteisDosGestores = await _context.Hotels
-                .Where(h => h.GestorId == user.Id)
+                .Where(h => h.GestorId == (user.GestorDonoId ?? user.Id))
                 .Select(h => h.Id)
                 .ToListAsync();
 
@@ -454,7 +454,7 @@ namespace PetStay.Controllers
 
             // Buscar hotÃ©is onde o usuÃ¡rio Ã© gestor
             var hoteisDosGestores = await _context.Hotels
-                .Where(h => h.GestorId == user.Id)
+                .Where(h => h.GestorId == (user.GestorDonoId ?? user.Id))
                 .Select(h => h.Id)
                 .ToListAsync();
 
@@ -493,7 +493,7 @@ namespace PetStay.Controllers
                 return NotFound();
 
             // Verificar se o gestor Ã© responsÃ¡vel deste hotel
-            if (reservation.Hotel.GestorId != user.Id)
+            if (reservation.Hotel.GestorId != (user.GestorDonoId ?? user.Id))
                 return Forbid();
 
             // Verificar se jÃ¡ foi respondida
@@ -531,7 +531,7 @@ namespace PetStay.Controllers
                 return NotFound();
 
             // Verificar se o gestor Ã© responsÃ¡vel deste hotel
-            if (reservation.Hotel.GestorId != user.Id)
+            if (reservation.Hotel.GestorId != (user.GestorDonoId ?? user.Id))
                 return Forbid();
 
             // Verificar se jÃ¡ foi respondida
@@ -572,7 +572,7 @@ namespace PetStay.Controllers
                 return NotFound();
 
             // Verificar se o gestor Ã© responsÃ¡vel deste hotel
-            if (reservation.Hotel.GestorId != user.Id)
+            if (reservation.Hotel.GestorId != (user.GestorDonoId ?? user.Id))
                 return Forbid();
 
             // Verificar se estÃ¡ em status Confirmada
@@ -619,7 +619,7 @@ namespace PetStay.Controllers
                 return NotFound();
 
             // Verificar se o gestor Ã© responsÃ¡vel deste hotel
-            if (reservation.Hotel.GestorId != user.Id)
+            if (reservation.Hotel.GestorId != (user.GestorDonoId ?? user.Id))
                 return Forbid();
 
             // Verificar se estÃ¡ em status EmProgresso

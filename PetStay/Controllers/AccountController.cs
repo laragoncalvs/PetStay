@@ -189,11 +189,39 @@ namespace PetStay.Controllers
                 return View(model);
             }
 
-            if (model.Perfil == PerfilUsuario.Gestor && !User.IsInRole(nameof(PerfilUsuario.Gestor)))
+            
+            if (model.Perfil == PerfilUsuario.Administrador)
             {
-                ModelState.AddModelError(nameof(RegisterViewModel.Perfil), "Apenas usuários com o papel de gestor podem cadastrar outro gestor.");
+                ModelState.AddModelError(nameof(model.Perfil), "Não é permitido cadastrar administradores.");
                 return View(model);
             }
+
+            var criador = await _userManager.GetUserAsync(User);
+            int? gestorDonoId = null;
+
+            if (model.Perfil == PerfilUsuario.Gestor)
+            {
+                if (criador == null)
+                {
+                    ModelState.AddModelError(nameof(model.Perfil), "É necessário estar autenticado para cadastrar gestores.");
+                    return View(model);
+                }
+
+                if (User.IsInRole(nameof(PerfilUsuario.Administrador)))
+                {
+                    gestorDonoId = null;
+                }
+                else if (User.IsInRole(nameof(PerfilUsuario.Gestor)) && criador.GestorDonoId == null)
+                {
+                    gestorDonoId = criador.Id;
+                }
+                else
+                {
+                    ModelState.AddModelError(nameof(model.Perfil), "Você não tem permissão para cadastrar gestores.");
+                    return View(model);
+                }
+            }
+
 
             var user = new ApplicationUser
             {
@@ -202,6 +230,7 @@ namespace PetStay.Controllers
                 PhoneNumber = model.Telefone,
                 Nome = model.Nome,
                 Perfil = model.Perfil!.Value,
+                GestorDonoId = gestorDonoId,
                 TermosAceitos = model.AceitouTermos,
                 TermosAceitosEm = DateTime.UtcNow
             };
@@ -233,10 +262,27 @@ namespace PetStay.Controllers
                 }
             }
 
-            await _userManager.AddToRoleAsync(user, roleName);
-            await _signInManager.SignInAsync(user, isPersistent: false);
+            
+            var resultadoPerfil = await _userManager.AddToRoleAsync(user, roleName);
+            if (!resultadoPerfil.Succeeded)
+            {
+                await _userManager.DeleteAsync(user);
+                foreach (var error in resultadoPerfil.Errors)
+                    ModelState.AddModelError(string.Empty, error.Description);
+                return View(model);
+            }
 
+            if (criador != null)
+            {
+                if (User.IsInRole(nameof(PerfilUsuario.Administrador)))
+                    return RedirectToAction("Index", "AdminUsers");
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            await _signInManager.SignInAsync(user, isPersistent: false);
             return RedirectToAction("Index", "Home");
+
         }
 
         private ProfileViewModel CreateProfileViewModel(ApplicationUser user)

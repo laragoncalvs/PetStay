@@ -21,6 +21,11 @@ namespace PetStay.Models
 
         public bool Ativo { get; set; } = true;
 
+        public int? GestorDonoId { get; set; }
+        public ApplicationUser? GestorDono { get; set; }
+        public ICollection<ApplicationUser> GestoresFuncionarios { get; set; } = new List<ApplicationUser>();
+
+
         public ICollection<Pet> Pets { get; set; } = new List<Pet>();
 
         public ICollection<Hotel> Hoteis { get; set; } = new List<Hotel>();

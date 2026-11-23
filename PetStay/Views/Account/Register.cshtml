@@ -56,10 +56,13 @@
                     <select asp-for="Perfil" class="form-select">
                         <option value="">Selecione uma opção</option>
                         <option value="Tutor">Tutor</option>
-                        @if (User.IsInRole(nameof(PetStay.Models.PerfilUsuario.Gestor)))
+                        
+                        @if (User.IsInRole(nameof(PetStay.Models.PerfilUsuario.Gestor)) ||
+                            User.IsInRole(nameof(PetStay.Models.PerfilUsuario.Administrador)))
                         {
                             <option value="Gestor">Gestor</option>
                         }
+
                     </select>
                     <span asp-validation-for="Perfil"></span>
                 </div>

@@ -38,7 +38,7 @@ namespace PetStay.Controllers
             // Buscar TODOS os hotéis do gestor
             var hoteisDoGestor = await _context.Hotels
                 .AsNoTracking()
-                .Where(h => h.GestorId == user.Id && h.Ativo && h.Aprovado)
+                .Where(h => h.GestorId == (user.GestorDonoId ?? user.Id) && h.Ativo && h.Aprovado)
                 .ToListAsync();
 
             if (!hoteisDoGestor.Any())

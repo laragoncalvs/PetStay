@@ -180,6 +180,9 @@ namespace PetStay.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("GestorDonoId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -227,6 +230,8 @@ namespace PetStay.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GestorDonoId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -603,6 +608,16 @@ namespace PetStay.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PetStay.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("PetStay.Models.ApplicationUser", "GestorDono")
+                        .WithMany("GestoresFuncionarios")
+                        .HasForeignKey("GestorDonoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("GestorDono");
+                });
+
             modelBuilder.Entity("PetStay.Models.Hotel", b =>
                 {
                     b.HasOne("PetStay.Models.ApplicationUser", "Administrador")
@@ -698,6 +713,8 @@ namespace PetStay.Migrations
 
             modelBuilder.Entity("PetStay.Models.ApplicationUser", b =>
                 {
+                    b.Navigation("GestoresFuncionarios");
+
                     b.Navigation("Hoteis");
 
                     b.Navigation("HoteisAnalisados");
