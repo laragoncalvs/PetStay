@@ -168,6 +168,23 @@ namespace PetStay.Controllers
                 return NotFound();
             }
 
+            var possuiReservaAtiva = await _context.Reservations.AnyAsync(r =>
+                r.PetId == pet.Id &&
+                (r.Status == StatusReserva.Pendente ||
+                r.Status == StatusReserva.Confirmada ||
+                r.Status == StatusReserva.EmProgresso));
+            if (possuiReservaAtiva)
+            {
+                TempData["PetDeleteError"] = "Este pet possui uma reserva ativa. Cancele a reserva antes de solicitar a exclusão.";
+                return RedirectToAction(nameof(Index));
+            }
+            var possuiHistorico = await _context.Reservations.AnyAsync(r => r.PetId == pet.Id);
+            if (possuiHistorico)
+            {
+                TempData["PetDeleteError"] = "Este pet possui um histórico de reservas e não pode ser excluído permanentemente.";
+                return RedirectToAction(nameof(Index));
+            }
+
             _context.Pets.Remove(pet);
             await _context.SaveChangesAsync();
 

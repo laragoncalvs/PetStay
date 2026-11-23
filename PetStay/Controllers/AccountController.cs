@@ -40,9 +40,17 @@ namespace PetStay.Controllers
             }
 
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user is null || !user.Ativo)
+            if (user is null)
             {
                 ModelState.AddModelError(string.Empty, "E-mail ou senha inválidos.");
+                return View(model);
+            }
+            if (!user.Ativo)
+            {
+                var senhaCorreta = await _userManager.CheckPasswordAsync(user, model.Senha);
+                ModelState.AddModelError(string.Empty, senhaCorreta
+                    ? "Sua conta está inativa. Entre em contato com o administrador."
+                    : "E-mail ou senha inválidos.");
                 return View(model);
             }
 

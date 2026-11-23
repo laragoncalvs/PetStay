@@ -1,14 +1,20 @@
-@model List<Reservation>
 
+@model List<Reservation>
 @{
     ViewData["Title"] = "Minhas Reservas";
 }
-
 <div class="container py-5">
     <div class="row">
         <div class="col-lg-10 mx-auto">
             <h1 class="mb-4">Minhas Reservas</h1>
-
+            @if (TempData["CancelSuccess"] is string sucesso)
+            {
+                <div class="alert alert-success">@sucesso</div>
+            }
+            @if (TempData["CancelError"] is string erro)
+            {
+                <div class="alert alert-danger">@erro</div>
+            }
             @if (!Model.Any())
             {
                 <div class="alert alert-info text-center py-5">
@@ -18,73 +24,59 @@
             }
             else
             {
-                <div class ="row row-cols-1 row-cols-md-2 row-cols-xl-2 g-4">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-2 g-4">
                     @foreach (var reservation in Model)
                     {
                         <div class="col-md-6 mb-4">
-                             <a href="@Url.Action("Details", "Reservation", new { id = reservation.Id })" class="text-decoration-none " style="color: inherit" >
-
-
-                            <div class=" h-100 border-0 shadow rounded-5 p-4">
-                                        @if (reservation.Status == StatusReserva.EmProgresso)
-                                        {
-                                            <div style="color:#176b87" class=" text-end">
-                                                Acontecendo </div>
-                                        }
-                                        else
-                                        {
-                                            <div style="color:#176b87" class=" text-end">
-                                                @reservation.Status
+                            <div class="h-100 border-0 shadow rounded-5 p-4">
+                                <a href="@Url.Action("Details", "Reservation", new { id = reservation.Id })" class="text-decoration-none" style="color: inherit">
+                                    @if (reservation.Status == StatusReserva.EmProgresso)
+                                    {
+                                        <div style="color:#176b87" class="text-end">Acontecendo</div>
+                                    }
+                                    else
+                                    {
+                                        <div style="color:#176b87" class="text-end">@reservation.Status</div>
+                                    }
+                                    <div style="display: flex; flex-direction: row; justify-content: space-between">
+                                        <div>
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="d-flex align-items-center flex-column">
+                                                    <img style="width: 160px; height: 160px; object-fit: cover; border-radius: 500px; margin-bottom:15px" src="@reservation.Hotel?.ImagemUrl"/>
+                                                    <h5 class="card-title mb-0">@reservation.Hotel?.Nome</h5>
+                                                    <small class="text-muted">@reservation.Pet?.Nome</small>
+                                                </div>
                                             </div>
-                                        }
-
-                                <div style="display: flex; flex-direction: row; justify-content: space-between">
-
-                                    <div class=" ">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="d-flex align-items-center flex-column">
-                                                <img style="width: 160px; height: 160px; object-fit: cover; border-radius: 500px; margin-bottom:15px" src="@reservation.Hotel?.ImagemUrl"/>
-                                                <h5 class="card-title mb-0">@reservation.Hotel?.Nome</h5>
-                                                <small class="text-muted">@reservation.Pet?.Nome</small>
-
+                                        </div>
+                                        <div class="w-50">
+                                            <div class="fw-bold">@reservation.DataEntrada.ToString("dd/MM/yyyy")</div>
+                                            <div>Check-in</div>
+                                            <hr/>
+                                            <div class="fw-bold">@reservation.DataSaida.ToString("dd/MM/yyyy")</div>
+                                            <div>Check-out</div>
+                                            <hr/>
+                                            <div class="mb-2">
+                                                <div class="fw-bold">R$ @reservation.ValorTotal.ToString("F2")</div>
+                                                <div>Valor Total</div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="w-50">
-                                        <div class=" fw-bold"> @reservation.DataEntrada.ToString("dd/MM/yyyy") </div><div class="">Check-in</div>
-                                        <hr/>
-                                        <div class=" fw-bold"> @reservation.DataSaida.ToString("dd/MM/yyyy")</div><div class="t">Check-out</div>
-                                        <hr />
-                                    <div class="mb-2 ">
-                                        <div class="fw-bold">R$ @reservation.ValorTotal.ToString("F2")</div> <div>
-                                        Valor Total
-
-                                        </div>
-                                    </div> 
-                                    </div>
-                               </div>
-                                <div class="d-flex justify-content-center">
-                                    <div >
-
-
-
-                                        @if (reservation.Status == StatusReserva.Confirmada && reservation.DataSaida > DateTime.Now)
-                                        {
-                                            <button class="btn btn-outline-secondary" onclick="cancelReservation(@reservation.Id)">
+                                </a>
+                                <div class="d-flex justify-content-center gap-2 mt-3">
+                                    @if ((reservation.Status == StatusReserva.Pendente || reservation.Status == StatusReserva.Confirmada) && reservation.DataEntrada.Date > DateTime.Today)
+                                    {
+                                        <form asp-controller="Reservation" asp-action="Cancel" asp-route-id="@reservation.Id" method="post" onsubmit="return confirm('Deseja realmente cancelar esta reserva?');">
+                                            <button type="submit" class="btn btn-outline-danger">
                                                 × Cancelar
                                             </button>
-                                        }
-
-                                        @if (reservation.Status == StatusReserva.Finalizada)
-                                        {
-                                            <a href="@Url.Action("Details", "Reservation", new { id = reservation.Id })" 
-                                               class="btn btn-outline-secondary"> Avaliar</a>
-                                        }
-
-                                    </div>
+                                        </form>
+                                    }
+                                    @if (reservation.Status == StatusReserva.Finalizada)
+                                    {
+                                        <a href="@Url.Action("Details", "Reservation", new { id = reservation.Id })" class="btn btn-outline-secondary">Avaliar</a>
+                                    }
                                 </div>
                             </div>
-                        </a>
                         </div>
                     }
                 </div>
@@ -92,5 +84,3 @@
         </div>
     </div>
 </div>
-
-

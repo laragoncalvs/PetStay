@@ -25,8 +25,11 @@ namespace PetStay.Controllers
         [HttpGet("create")]
         public async Task<IActionResult> Create(int hotelId)
         {
+            
             var hotel = await _context.Hotels
+                .Include(h => h.Tarifas)
                 .FirstOrDefaultAsync(h => h.Id == hotelId && h.Ativo && h.Aprovado);
+
 
             if (hotel == null)
                 return NotFound();
@@ -77,7 +80,11 @@ namespace PetStay.Controllers
             }
 
             // Buscar hotel
-            var hotel = await _context.Hotels.FindAsync(model.HotelId);
+            
+            var hotel = await _context.Hotels
+                .Include(h => h.Tarifas)
+                .FirstOrDefaultAsync(h => h.Id == model.HotelId);
+
             if (hotel == null || !hotel.Ativo || !hotel.Aprovado)
             {
                 ModelState.AddModelError("", "Hotel nÃ£o encontrado ou indisponÃ­vel.");
@@ -230,35 +237,35 @@ namespace PetStay.Controllers
         }
 
         // POST: Reservation/Cancel/5
+       
         [HttpPost("cancel/{id}")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int id)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
                 return Unauthorized();
-
             var reservation = await _context.Reservations
                 .FirstOrDefaultAsync(r => r.Id == id && r.TutorId == user.Id);
-
             if (reservation == null)
                 return NotFound();
-
-            if (reservation.Status == StatusReserva.Cancelada)
-                return BadRequest(new { message = "Esta reserva jÃ¡ foi cancelada." });
-
-            if (reservation.DataEntrada <= DateTime.Now.Date)
-                return BadRequest(new { message = "NÃ£o Ã© possÃ­vel cancelar uma reserva que jÃ¡ iniciou." });
-
-            // Reembolso automÃ¡tico
-            // TODO: Integrar com gateway de pagamento para processar reembolso
+            if (reservation.Status != StatusReserva.Pendente && reservation.Status != StatusReserva.Confirmada)
+            {
+                TempData["CancelError"] = "Esta reserva não pode ser cancelada.";
+                return RedirectToAction(nameof(MyReservations));
+            }
+            if (reservation.DataEntrada.Date <= DateTime.Today)
+            {
+                TempData["CancelError"] = "Não é possível cancelar uma reserva que já iniciou.";
+                return RedirectToAction(nameof(MyReservations));
+            }
             reservation.Status = StatusReserva.Cancelada;
             reservation.AtualizadaEm = DateTime.UtcNow;
-
-            _context.Reservations.Update(reservation);
             await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Reserva cancelada com reembolso automÃ¡tico processado." });
+            TempData["CancelSuccess"] = "Reserva cancelada com sucesso.";
+            return RedirectToAction(nameof(MyReservations));
         }
+
 
         // MÃ©todos auxiliares
         private bool VerificaCompatibilidadePet(Hotel hotel, Pet pet)
@@ -272,11 +279,11 @@ namespace PetStay.Controllers
             var faixasAceitas = hotel.FaixasEtariasAceitas?.Split(',').Select(f => f.Trim()).Where(f => !string.IsNullOrEmpty(f)).ToList() ?? new List<string>();
 
             // Verificar se o tamanho do pet Ã© aceito (comparar nome do enum, nÃ£o valor)
-            if (portesAceitos.Count > 0 && !portesAceitos.Contains(pet.Tamanho.ToString(), StringComparer.OrdinalIgnoreCase))
+            if (portesAceitos.Count > 0 && !portesAceitos.Contains(((int)pet.Tamanho).ToString()))
                 return false;
 
             // Verificar se a faixa etÃ¡ria do pet Ã© aceita (comparar nome do enum, nÃ£o valor)
-            if (faixasAceitas.Count > 0 && !faixasAceitas.Contains(pet.FaixaEtaria.ToString(), StringComparer.OrdinalIgnoreCase))
+            if (faixasAceitas.Count > 0 && !faixasAceitas.Contains(((int)pet.FaixaEtaria).ToString()))
                 return false;
 
             return true;
@@ -640,20 +647,20 @@ namespace PetStay.Controllers
             return RedirectToAction(nameof(ManageReservations));
         }
 
+        
         private (decimal valorDiaria, decimal valorAdicionalIdade) CalculaValorReserva(Hotel hotel, Pet pet, int diasReserva)
         {
-            var valorDiaria = hotel.Diaria;
-
-            // Adicional por faixa etÃ¡ria
+            var tarifa = hotel.Tarifas.FirstOrDefault(t => t.Porte == pet.Tamanho);
+            var valorDiaria = tarifa?.ValorDiaria ?? hotel.Diaria;
             var valorAdicionalIdade = pet.FaixaEtaria switch
             {
-                FaixaEtariaPet.Filhote => hotel.Diaria * 0.10m, // 10% adicional
-                FaixaEtariaPet.Idoso => hotel.Diaria * 0.15m,   // 15% adicional
+                FaixaEtariaPet.Filhote => valorDiaria * 0.10m,
+                FaixaEtariaPet.Idoso => valorDiaria * 0.15m,
                 _ => 0m
             };
-
             return (valorDiaria, valorAdicionalIdade);
         }
+
     }
 }
 

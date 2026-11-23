@@ -527,6 +527,31 @@ namespace PetStay.Migrations
                     b.ToTable("Reviews");
                 });
 
+            modelBuilder.Entity("PetStay.Models.Tarifa", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("HotelId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Porte")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ValorDiaria")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HotelId", "Porte")
+                        .IsUnique();
+
+                    b.ToTable("Tarifas");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
@@ -660,6 +685,17 @@ namespace PetStay.Migrations
                     b.Navigation("Tutor");
                 });
 
+            modelBuilder.Entity("PetStay.Models.Tarifa", b =>
+                {
+                    b.HasOne("PetStay.Models.Hotel", "Hotel")
+                        .WithMany("Tarifas")
+                        .HasForeignKey("HotelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hotel");
+                });
+
             modelBuilder.Entity("PetStay.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Hoteis");
@@ -667,6 +703,11 @@ namespace PetStay.Migrations
                     b.Navigation("HoteisAnalisados");
 
                     b.Navigation("Pets");
+                });
+
+            modelBuilder.Entity("PetStay.Models.Hotel", b =>
+                {
+                    b.Navigation("Tarifas");
                 });
 #pragma warning restore 612, 618
         }

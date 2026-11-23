@@ -69,9 +69,19 @@
                         <span asp-validation-for="Capacidade"></span>
                     </div>
                     <div class="col-md-4">
-                        <label asp-for="Diaria" class="form-label"></label>
-                        <input asp-for="Diaria" class="form-control" type="number" min="0" step="0.01" />
-                        <span asp-validation-for="Diaria"></span>
+                        <label asp-for="DiariaPequeno" class="form-label"></label>
+                        <input asp-for="DiariaPequeno" class="form-control" type="number" min="0.01" step="0.01" />
+                        <span asp-validation-for="DiariaPequeno" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="DiariaMedio" class="form-label"></label>
+                        <input asp-for="DiariaMedio" class="form-control" type="number" min="0.01" step="0.01" />
+                        <span asp-validation-for="DiariaMedio" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="DiariaGrande" class="form-label"></label>
+                        <input asp-for="DiariaGrande" class="form-control" type="number" min="0.01" step="0.01" />
+                        <span asp-validation-for="DiariaGrande" class="text-danger"></span>
                     </div>
                 </div>
 

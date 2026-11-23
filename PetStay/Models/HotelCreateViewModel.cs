@@ -45,6 +45,20 @@ namespace PetStay.Models
         [Display(Name = "Diária")]
         public decimal Diaria { get; set; }
 
+        
+        [Range(typeof(decimal), "0.01", "79228162514264337593543950335", ParseLimitsInInvariantCulture = true, ErrorMessage = "Informe uma diária válida para pets pequenos.")]
+        [Display(Name = "Diária para porte pequeno")]
+        public decimal? DiariaPequeno { get; set; }
+
+        [Range(typeof(decimal), "0.01", "79228162514264337593543950335", ParseLimitsInInvariantCulture = true, ErrorMessage = "Informe uma diária válida para pets médios.")]
+        [Display(Name = "Diária para porte médio")]
+        public decimal? DiariaMedio { get; set; }
+
+        [Range(typeof(decimal), "0.01", "79228162514264337593543950335", ParseLimitsInInvariantCulture = true, ErrorMessage = "Informe uma diária válida para pets grandes.")]
+        [Display(Name = "Diária para porte grande")]
+        public decimal? DiariaGrande { get; set; }
+
+
         [Url(ErrorMessage = "Informe uma URL válida para a imagem.")]
         [StringLength(500)]
         [Display(Name = "URL da imagem")]
@@ -74,6 +88,16 @@ namespace PetStay.Models
                     "O horário de fechamento deve ser posterior ao horário de abertura.",
                     new[] { nameof(HorarioFechamento) });
             }
+
+            if (PortesAceitos.Contains(TamanhoPet.Pequeno) && !DiariaPequeno.HasValue)
+                yield return new ValidationResult("Informe a diária para pets pequenos.", new[] { nameof(DiariaPequeno) });
+
+            if (PortesAceitos.Contains(TamanhoPet.Medio) && !DiariaMedio.HasValue)
+                yield return new ValidationResult("Informe a diária para pets médios.", new[] { nameof(DiariaMedio) });
+
+            if (PortesAceitos.Contains(TamanhoPet.Grande) && !DiariaGrande.HasValue)
+                yield return new ValidationResult("Informe a diária para pets grandes.", new[] { nameof(DiariaGrande) });
+
         }
     }
 }

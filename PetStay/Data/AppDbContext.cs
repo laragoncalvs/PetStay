@@ -12,6 +12,8 @@ namespace PetStay.Data
         }
 
         public DbSet<Hotel> Hotels { get; set; }
+        public DbSet<Tarifa> Tarifas { get; set; }
+
 
         public DbSet<Pet> Pets { get; set; }
 
@@ -22,6 +24,16 @@ namespace PetStay.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Tarifa>()
+                .HasOne(t => t.Hotel)
+                .WithMany(h => h.Tarifas)
+                .HasForeignKey(t => t.HotelId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Tarifa>()
+                .HasIndex(t => new { t.HotelId, t.Porte })
+                .IsUnique();
 
             modelBuilder.Entity<Hotel>()
                 .HasOne(hotel => hotel.Gestor)

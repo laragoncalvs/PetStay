@@ -41,6 +41,19 @@ namespace PetStay.Controllers
                 return Challenge();
             }
 
+            var tarifas = new List<Tarifa>();
+            if (model.PortesAceitos.Contains(TamanhoPet.Pequeno))
+                tarifas.Add(new Tarifa { Porte = TamanhoPet.Pequeno, ValorDiaria = model.DiariaPequeno!.Value });
+            if (model.PortesAceitos.Contains(TamanhoPet.Medio))
+                tarifas.Add(new Tarifa { Porte = TamanhoPet.Medio, ValorDiaria = model.DiariaMedio!.Value });
+            if (model.PortesAceitos.Contains(TamanhoPet.Grande))
+                tarifas.Add(new Tarifa { Porte = TamanhoPet.Grande, ValorDiaria = model.DiariaGrande!.Value });
+            if (tarifas.Count == 0)
+            {
+                ModelState.AddModelError(nameof(model.PortesAceitos), "Selecione pelo menos um porte aceito.");
+                return View(model);
+            }
+
             var hotel = new Hotel
             {
                 Nome = model.Nome,
@@ -51,7 +64,8 @@ namespace PetStay.Controllers
                 Email = model.Email,
                 Descricao = model.Descricao,
                 Capacidade = model.Capacidade,
-                Diaria = model.Diaria,
+                Diaria = tarifas.Min(t => t.ValorDiaria),
+                Tarifas = tarifas,
                 ImagemUrl = model.ImagemUrl,
                 HorarioAbertura = model.HorarioAbertura,
                 HorarioFechamento = model.HorarioFechamento,

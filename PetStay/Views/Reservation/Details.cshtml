@@ -176,53 +176,54 @@
     /* Sem estilos especiais necessários para input number */
 </style>
 
+
 <script>
     function initReviewModal(reservationId, hotelName, petName) {
+        document.getElementById('reviewForm').reset();
         document.getElementById('reservationId').value = reservationId;
+        document.getElementById('hotelId').value = @Model.HotelId;
         document.getElementById('hotelName').textContent = hotelName;
         document.getElementById('petName').textContent = petName;
-
-        // Limpar formulário
-        document.getElementById('reviewForm').reset();
         document.getElementById('charCount').textContent = '0';
     }
-
     document.addEventListener('DOMContentLoaded', function () {
-        // Contador de caracteres
         const textarea = document.getElementById('comentario');
-        textarea?.addEventListener('input', function () {
+        textarea.addEventListener('input', function () {
             document.getElementById('charCount').textContent = this.value.length;
         });
-    });
-
-    // Submissão do formulário
-    document.getElementById('reviewForm')?.addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const nota = document.getElementById('nota').value;
-        if (!nota || nota < 1 || nota > 5) {
-            alert('Por favor, digite uma nota entre 1 e 5');
-            return;
-        }
-
-        const formData = new FormData(this);
-        try {
-            const response = await fetch('/api/review/create', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (response.ok) {
+        document.getElementById('reviewForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const nota = Number(document.getElementById('nota').value);
+            if (nota < 1 || nota > 5) {
+                alert('Por favor, digite uma nota entre 1 e 5.');
+                return;
+            }
+            const dados = {
+                reservationId: Number(document.getElementById('reservationId').value),
+                hotelId: Number(document.getElementById('hotelId').value),
+                nota: nota,
+                comentario: textarea.value
+            };
+            try {
+                const response = await fetch('/api/review/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dados)
+                });
+                const resultado = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    alert(resultado.message || 'Não foi possível enviar a avaliação.');
+                    return;
+                }
                 alert('Avaliação enviada com sucesso!');
-                location.reload();
-            } else {
-                const error = await response.json();
-                alert('Erro: ' + (error.message || 'Não foi possível enviar a avaliação'));
+                window.location.href = '/Reservation/my-reservations';
+            } catch (error) {
+                console.error(error);
+                alert('Erro ao enviar avaliação.');
             }
-            }
-        } catch (error) {
-            console.error('Erro:', error);
-            alert('Erro ao enviar avaliação');
-        }
+        });
     });
 </script>
+

@@ -54,6 +54,8 @@ namespace PetStay.Models
         [Range(typeof(decimal), "0", "79228162514264337593543950335")]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Diaria { get; set; }
+        public ICollection<Tarifa> Tarifas { get; set; } = new List<Tarifa>();
+
 
         public bool Ativo { get; set; } = true;
 

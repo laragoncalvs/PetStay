@@ -61,57 +61,55 @@ namespace PetStay.Controllers
         }
 
         // POST: Review/Create
+       
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] ReviewViewModel model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
                 return Unauthorized();
-
             var reservation = await _context.Reservations
                 .FirstOrDefaultAsync(r => r.Id == model.ReservationId && r.TutorId == user.Id);
-
             if (reservation == null)
                 return NotFound();
-
-            // Verificar se já existe review
+            if (reservation.Status != StatusReserva.Finalizada)
+                return BadRequest(new { message = "Somente reservas finalizadas podem ser avaliadas." });
             var existingReview = await _context.Reviews
-                .FirstOrDefaultAsync(r => r.ReservationId == model.ReservationId);
-
-            if (existingReview != null)
+                .AnyAsync(r => r.ReservationId == model.ReservationId);
+            if (existingReview)
                 return BadRequest(new { message = "Esta reserva já foi avaliada." });
-
-            // Validar nota
             if (model.Nota < 1 || model.Nota > 5)
                 return BadRequest(new { message = "A nota deve estar entre 1 e 5 estrelas." });
-
             var review = new Review
             {
-                HotelId = model.HotelId,
+                HotelId = reservation.HotelId,
                 TutorId = user.Id,
-                ReservationId = model.ReservationId,
+                ReservationId = reservation.Id,
                 Nota = model.Nota,
                 TituloAvaliacao = model.TituloAvaliacao,
                 Comentario = model.Comentario,
                 DataCriacao = DateTime.UtcNow
             };
-
-            _context.Reviews.Add(review);
-
-            // Atualizar a nota média do hotel
-            await AtualizaNoteaHotel(model.HotelId);
-
-            await _context.SaveChangesAsync();
-
-            return Created(nameof(Create), new
+            
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                _context.Reviews.Add(review);
+                await _context.SaveChangesAsync();
+                await AtualizaNoteaHotel(reservation.HotelId);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            });
+            return Ok(new
             {
                 message = "Avaliação registrada com sucesso!",
                 reviewId = review.Id
             });
         }
+
 
         // GET: Review/Hotel/{hotelId}
         [AllowAnonymous]

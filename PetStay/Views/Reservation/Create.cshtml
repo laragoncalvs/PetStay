@@ -64,9 +64,13 @@
                             <label for="petId" class="form-label fw-bold">Pet</label>
                             <select id="petId" name="petId" class="form-select" required>
                                 <option value="">-- Escolha um pet --</option>
-                                @foreach (var pet in Model?.PetsDoTutor ?? new List<Pet>())
-                                {
-                                    <option value="@pet.Id">
+                                
+                                    @foreach (var pet in Model?.PetsDoTutor ?? new List<Pet>())
+                                    {
+                                        var valorDiariaPet = Model?.Hotel?.Tarifas?.FirstOrDefault(t => t.Porte == pet.Tamanho)?.ValorDiaria
+                                            ?? Model?.Hotel?.Diaria ?? 0m;
+                                        <option value="@pet.Id" data-faixa-etaria="@pet.FaixaEtaria" data-diaria="@valorDiariaPet.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+
                                         @pet.Nome - @(pet.Tamanho switch {
                                             TamanhoPet.Pequeno => "Pequeno",
                                             TamanhoPet.Medio => "Médio",
@@ -182,28 +186,38 @@
     </div>
 </div>
 
+
+
 <script>
-    // Atualizar cálculo de dias e valores
-    document.getElementById('dataEntrada').addEventListener('change', atualizarResumo);
-    document.getElementById('dataSaida').addEventListener('change', atualizarResumo);
-    document.getElementById('petId').addEventListener('change', atualizarAdicionalIdade);
-
+    const diariaPadrao = Number('@((Model?.Hotel?.Diaria ?? 0m).ToString(System.Globalization.CultureInfo.InvariantCulture))');
+    const petSelect = document.getElementById('petId');
+    const dataEntrada = document.getElementById('dataEntrada');
+    const dataSaida = document.getElementById('dataSaida');
     function atualizarResumo() {
-        const dataEntrada = new Date(document.getElementById('dataEntrada').value);
-        const dataSaida = new Date(document.getElementById('dataSaida').value);
-        const dias = Math.max(1, Math.ceil((dataSaida - dataEntrada) / (1000 * 60 * 60 * 24)));
-
+        const entrada = dataEntrada.value;
+        const saida = dataSaida.value;
+        const dias = entrada && saida
+            ? Math.max(1, Math.round((new Date(saida) - new Date(entrada)) / 86400000))
+            : 1;
+        const opcao = petSelect.selectedOptions[0];
+        const valorDiaria = Number(opcao?.dataset.diaria ?? diariaPadrao);
+        const faixaEtaria = opcao?.dataset.faixaEtaria;
+        const percentual = faixaEtaria === 'Filhote' ? 0.10 : faixaEtaria === 'Idoso' ? 0.15 : 0;
+        const adicional = valorDiaria * percentual;
+        const total = (valorDiaria + adicional) * dias;
+        const formatar = valor => valor.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
         document.getElementById('totalDias').textContent = dias;
-
-        const valorDiaria = parseFloat('@Model?.ValorDiariaBase'.replace(',', '.'));
-        const valorAdicional = parseFloat(document.getElementById('valorAdicional').textContent.replace(',', '.'));
-        const valorTotal = (valorDiaria + valorAdicional) * dias;
-
-        document.getElementById('valorTotal').textContent = valorTotal.toFixed(2);
+        document.getElementById('valorDiariaBase').textContent = formatar(valorDiaria);
+        document.getElementById('valorAdicional').textContent = formatar(adicional);
+        document.getElementById('valorTotal').textContent = formatar(total);
     }
-
-    function atualizarAdicionalIdade() {
-        // Aqui você poderia fazer uma chamada AJAX para buscar as informações do pet
-        // Por enquanto, deixamos como está
-    }
+    petSelect.addEventListener('change', atualizarResumo);
+    dataEntrada.addEventListener('change', atualizarResumo);
+    dataSaida.addEventListener('change', atualizarResumo);
+    atualizarResumo();
 </script>
+
+

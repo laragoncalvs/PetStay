@@ -93,3 +93,28 @@
         </div>
     }
 </div>
+
+@if (TempData["PetDeleteError"] is string mensagem)
+{
+    <div class="modal fade" id="modalExclusaoPet" tabindex="-1" aria-labelledby="tituloModalExclusaoPet" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tituloModalExclusaoPet">Não foi possível excluir o pet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">@mensagem</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Entendi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            new bootstrap.Modal(document.getElementById('modalExclusaoPet')).show();
+        });
+    </script>
+}
