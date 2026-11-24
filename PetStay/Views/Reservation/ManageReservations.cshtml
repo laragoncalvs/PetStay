@@ -75,7 +75,7 @@
                                     <span class="text-muted">-</span>
                                 }
                             </td>
-                            <td>@reservation.ValorTotal.ToString("C")</td>
+                            <td>R$ @reservation.ValorTotal.ToString("F2")</td>
                             <td>
                                 @if (reservation.Status == StatusReserva.Confirmada)
                                 {

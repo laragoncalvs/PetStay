@@ -209,7 +209,7 @@
                     <p class="text-muted mb-0">@hotel.Cidade@(string.IsNullOrWhiteSpace(hotel.Estado) ? "" : $", {hotel.Estado}")</p>
 
                     <div class="mt-auto d-flex justify-content-between align-items-center">
-                        <span class="text-muted fw-normal">@hotel.Diaria.ToString("C") <small class="text-muted fw-normal">/ noite</small></span>
+                        <span class="text-muted fw-normal">R$ @hotel.Diaria.ToString("F2") <small class="text-muted fw-normal">/ noite</small></span>
                     </div>
                 </div>
             </article>

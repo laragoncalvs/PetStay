@@ -51,7 +51,7 @@
                             <td>@reservation.Pet?.Nome</td>
                             <td>@reservation.DataEntrada.ToString("dd/MM/yyyy")</td>
                             <td>@reservation.DataSaida.ToString("dd/MM/yyyy")</td>
-                            <td>@reservation.ValorTotal.ToString("C")</td>
+                            <td>R$ @reservation.ValorTotal.ToString("F2")</td>
                             <td>@reservation.SolicitadaEm.ToString("dd/MM/yyyy HH:mm")</td>
                             <td>
                                 <button type="button" class="btn btn-sm px-3 py-2 fw-semibold text-white" 
